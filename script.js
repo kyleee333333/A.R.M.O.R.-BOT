@@ -1,48 +1,268 @@
-/*
-========================================
-A.R.M.O.R. BOT DASHBOARD
-========================================
-*/
+/* =====================================
+   A.R.M.O.R. BOT
+   CAMERA + MONITOR SYSTEM
+===================================== */
 
 
-let peer;
+let peer = null;
 
-let waterLevel = 35;
+let localStream = null;
 
-
-/*
-========================================
-CREATE LAPTOP PEER
-========================================
-*/
-
-peer = new Peer();
+let currentMode = null;
 
 
-peer.on(
-    "open",
-    function(id) {
+/* =====================================
+   CREATE PEER
+===================================== */
+
+function createPeer() {
+
+    if (peer) {
+
+        return;
+
+    }
+
+
+    peer = new Peer();
+
+
+    peer.on("open", function(id) {
 
         console.log(
-            "Laptop Peer ID:",
+            "Peer ID:",
             id
         );
 
+
+        document.getElementById(
+            "cameraId"
+        ).textContent = id;
+
+    });
+
+
+    peer.on("error", function(error) {
+
+        console.error(
+            "PeerJS error:",
+            error
+        );
+
+        alert(
+            "Connection error: " +
+            error.type
+        );
+
+    });
+
+
+    /*
+       When another device calls
+       the phone, answer with
+       the phone camera.
+    */
+
+    peer.on("call", function(call) {
+
+        console.log(
+            "Incoming camera request."
+        );
+
+
+        if (!localStream) {
+
+            console.log(
+                "Camera is not active."
+            );
+
+            return;
+
+        }
+
+
+        call.answer(
+            localStream
+        );
+
+
+        document.getElementById(
+            "cameraConnectionStatus"
+        ).textContent =
+            "CONNECTED";
+
+
+        document.getElementById(
+            "cameraConnectionStatus"
+        ).classList.add(
+            "green"
+        );
+
+    });
+
+}
+
+
+
+/* =====================================
+   CAMERA MODE
+===================================== */
+
+function enableCameraMode() {
+
+    currentMode =
+        "camera";
+
+
+    createPeer();
+
+
+    document.getElementById(
+        "cameraControl"
+    ).classList.remove(
+        "hidden"
+    );
+
+
+    document.getElementById(
+        "monitorControl"
+    ).classList.add(
+        "hidden"
+    );
+
+
+    document.getElementById(
+        "modeStatus"
+    ).textContent =
+        "📱 Phone Camera Mode Enabled";
+
+}
+
+
+
+/* =====================================
+   MONITOR MODE
+===================================== */
+
+function enableMonitorMode() {
+
+    currentMode =
+        "monitor";
+
+
+    createPeer();
+
+
+    document.getElementById(
+        "monitorControl"
+    ).classList.remove(
+        "hidden"
+    );
+
+
+    document.getElementById(
+        "cameraControl"
+    ).classList.add(
+        "hidden"
+    );
+
+
+    document.getElementById(
+        "modeStatus"
+    ).textContent =
+        "💻 Laptop Monitor Mode Enabled";
+
+}
+
+
+
+/* =====================================
+   START PHONE CAMERA
+===================================== */
+
+async function startPhoneCamera() {
+
+    try {
+
+        localStream =
+            await navigator.mediaDevices
+            .getUserMedia({
+
+                video: {
+
+                    facingMode: {
+                        ideal:
+                        "environment"
+                    }
+
+                },
+
+                audio: false
+
+            });
+
+
+        document.getElementById(
+            "localVideo"
+        ).srcObject =
+            localStream;
+
+
+        document.getElementById(
+            "cameraConnectionStatus"
+        ).textContent =
+            "CAMERA ACTIVE";
+
+
+        document.getElementById(
+            "cameraConnectionStatus"
+        ).classList.add(
+            "green"
+        );
+
+
+        document.getElementById(
+            "startCameraButton"
+        ).textContent =
+            "✅ CAMERA ACTIVE";
+
+
+        document.getElementById(
+            "startCameraButton"
+        ).disabled =
+            true;
+
+
     }
-);
+
+    catch(error) {
+
+        console.error(
+            error
+        );
 
 
-/*
-========================================
-CONNECT TO PHONE CAMERA
-========================================
-*/
+        alert(
+            "Unable to access camera.\n\n" +
+            error.name +
+            "\n\nPlease allow camera permission."
+        );
 
-function connectCamera() {
+    }
+
+}
+
+
+
+/* =====================================
+   LAPTOP CONNECT TO PHONE
+===================================== */
+
+function connectToPhone() {
 
     const phoneId =
         document.getElementById(
-            "phoneId"
+            "phoneCameraId"
         ).value.trim();
 
 
@@ -57,40 +277,43 @@ function connectCamera() {
     }
 
 
+    if (!peer) {
+
+        alert(
+            "Monitor connection is not ready. Please select Monitor Mode again."
+        );
+
+        return;
+
+    }
+
+
+    document.getElementById(
+        "monitorStatus"
+    ).textContent =
+        "CONNECTING...";
+
+
     /*
-    We don't need our own camera.
-    We simply call the phone.
+       IMPORTANT:
+
+       The laptop does NOT need
+       its own camera.
+
+       It calls the phone.
     */
-
-    navigator.mediaDevices
-        .getUserMedia({
-            video: false,
-            audio: false
-        })
-        .catch(() => null);
-
-
-    /*
-    PeerJS requires a media stream.
-
-    Create an empty media stream.
-    */
-
-    const emptyStream =
-        new MediaStream();
-
 
     const call =
         peer.call(
             phoneId,
-            emptyStream
+            null
         );
 
 
     if (!call) {
 
         alert(
-            "Unable to connect to phone."
+            "Could not create connection."
         );
 
         return;
@@ -101,6 +324,11 @@ function connectCamera() {
     call.on(
         "stream",
         function(remoteStream) {
+
+            console.log(
+                "Receiving phone camera."
+            );
+
 
             const video =
                 document.getElementById(
@@ -123,21 +351,22 @@ function connectCamera() {
 
 
             document.getElementById(
-                "cameraStatus"
+                "liveCameraStatus"
             ).textContent =
-                "● CAMERA CONNECTED";
+                "● LIVE";
 
 
             document.getElementById(
-                "cameraStatus"
+                "liveCameraStatus"
             ).classList.add(
                 "green"
             );
 
 
-            addLog(
-                "Phone camera connected successfully."
-            );
+            document.getElementById(
+                "monitorStatus"
+            ).textContent =
+                "CONNECTED";
 
         }
     );
@@ -147,7 +376,10 @@ function connectCamera() {
         "close",
         function() {
 
-            cameraDisconnected();
+            document.getElementById(
+                "liveCameraStatus"
+            ).textContent =
+                "DISCONNECTED";
 
         }
     );
@@ -157,7 +389,10 @@ function connectCamera() {
         "error",
         function(error) {
 
-            console.error(error);
+            console.error(
+                error
+            );
+
 
             alert(
                 "Camera connection failed."
@@ -169,93 +404,86 @@ function connectCamera() {
 }
 
 
-/*
-========================================
-CAMERA DISCONNECTED
-========================================
-*/
 
-function cameraDisconnected() {
+/* =====================================
+   DEMO SENSOR DATA
+===================================== */
 
-    document.getElementById(
-        "remoteVideo"
-    ).style.display =
-        "none";
+let waterLevel =
+    35;
 
 
-    document.getElementById(
-        "cameraPlaceholder"
-    ).style.display =
-        "flex";
+function updateSensors() {
+
+    waterLevel +=
+        Math.floor(
+            Math.random() * 7
+        ) - 3;
 
 
-    document.getElementById(
-        "cameraStatus"
-    ).textContent =
-        "CAMERA DISCONNECTED";
+    if (
+        waterLevel < 10
+    ) {
 
-}
+        waterLevel =
+            10;
+
+    }
 
 
-/*
-========================================
-WATER LEVEL
-========================================
-*/
+    if (
+        waterLevel > 100
+    ) {
 
-function updateWaterLevel(level) {
+        waterLevel =
+            100;
 
-    waterLevel = level;
+    }
 
 
     document.getElementById(
         "waterLevel"
     ).textContent =
-        level;
+        waterLevel;
 
 
     document.getElementById(
-        "waterDisplay"
+        "rainfall"
     ).textContent =
-        level;
-
-
-    /*
-    Maximum level = 100 cm
-    */
-
-    const percentage =
-        Math.min(
-            level,
-            100
+        Math.floor(
+            Math.random() * 15
         );
 
 
     document.getElementById(
-        "water"
-    ).style.height =
-        percentage + "%";
+        "temperature"
+    ).textContent =
+        27 +
+        Math.floor(
+            Math.random() * 5
+        );
 
 
-    updateRisk(level);
+    updateRisk();
 
 }
 
 
-/*
-========================================
-FLOOD RISK
-========================================
-*/
 
-function updateRisk(level) {
+/* =====================================
+   FLOOD RISK
+===================================== */
+
+function updateRisk() {
 
     let risk;
 
     let percentage;
 
 
-    if (level < 40) {
+    if (
+        waterLevel < 40
+    ) {
 
         risk =
             "LOW";
@@ -265,7 +493,9 @@ function updateRisk(level) {
 
     }
 
-    else if (level < 60) {
+    else if (
+        waterLevel < 60
+    ) {
 
         risk =
             "MODERATE";
@@ -275,7 +505,9 @@ function updateRisk(level) {
 
     }
 
-    else if (level < 80) {
+    else if (
+        waterLevel < 80
+    ) {
 
         risk =
             "HIGH";
@@ -305,37 +537,28 @@ function updateRisk(level) {
     document.getElementById(
         "riskPercent"
     ).textContent =
-        percentage + "%";
+        percentage +
+        "%";
 
 
     document.getElementById(
         "riskBar"
     ).style.width =
-        percentage + "%";
+        percentage +
+        "%";
 
 
-    updateAlert(risk);
-
-}
-
-
-/*
-========================================
-ALERT
-========================================
-*/
-
-function updateAlert(risk) {
-
-    const box =
+    const alert =
         document.getElementById(
             "alertBox"
         );
+
 
     const title =
         document.getElementById(
             "alertTitle"
         );
+
 
     const text =
         document.getElementById(
@@ -343,13 +566,15 @@ function updateAlert(risk) {
         );
 
 
-    box.className =
+    alert.className =
         "alert";
 
 
-    if (risk === "LOW") {
+    if (
+        risk === "LOW"
+    ) {
 
-        box.classList.add(
+        alert.classList.add(
             "safe"
         );
 
@@ -363,10 +588,11 @@ function updateAlert(risk) {
 
     }
 
+    else if (
+        risk === "MODERATE"
+    ) {
 
-    else if (risk === "MODERATE") {
-
-        box.classList.add(
+        alert.classList.add(
             "warning"
         );
 
@@ -376,14 +602,15 @@ function updateAlert(risk) {
 
 
         text.textContent =
-            "Water level is increasing. Continue monitoring.";
+            "Water level is increasing.";
 
     }
 
+    else if (
+        risk === "HIGH"
+    ) {
 
-    else if (risk === "HIGH") {
-
-        box.classList.add(
+        alert.classList.add(
             "warning"
         );
 
@@ -393,14 +620,13 @@ function updateAlert(risk) {
 
 
         text.textContent =
-            "Water level has reached the high-risk threshold.";
+            "High overflow risk detected.";
 
     }
 
-
     else {
 
-        box.classList.add(
+        alert.classList.add(
             "danger"
         );
 
@@ -417,130 +643,15 @@ function updateAlert(risk) {
 }
 
 
-/*
-========================================
-SYSTEM LOG
-========================================
-*/
 
-function addLog(message) {
-
-    const logs =
-        document.getElementById(
-            "logs"
-        );
-
-
-    const item =
-        document.createElement(
-            "div"
-        );
-
-
-    item.className =
-        "log";
-
-
-    item.innerHTML =
-        "🟢 <span>" +
-        message +
-        "</span>";
-
-
-    logs.prepend(
-        item
-    );
-
-
-    if (logs.children.length > 5) {
-
-        logs.removeChild(
-            logs.lastChild
-        );
-
-    }
-
-}
-
-
-/*
-========================================
-DEMO SENSOR DATA
-========================================
-
-This is only for testing the website.
-
-Later this can be replaced with
-Arduino/ESP32 data.
-*/
-
-function simulateSensors() {
-
-    let change =
-        Math.floor(
-            Math.random() * 7
-        ) - 3;
-
-
-    let level =
-        waterLevel + change;
-
-
-    if (level < 10)
-        level = 10;
-
-
-    if (level > 100)
-        level = 100;
-
-
-    updateWaterLevel(
-        level
-    );
-
-
-    /*
-    Rainfall
-    */
-
-    document.getElementById(
-        "rainfall"
-    ).textContent =
-        Math.floor(
-            Math.random() * 15
-        );
-
-
-    /*
-    Temperature
-    */
-
-    document.getElementById(
-        "temperature"
-    ).textContent =
-        Math.floor(
-            Math.random() * 5
-        ) + 27;
-
-}
-
-
-/*
-========================================
-START DEMO
-========================================
-*/
-
-updateWaterLevel(
-    35
-);
-
-
-/*
-Update every 3 seconds
-*/
+/* =====================================
+   START
+===================================== */
 
 setInterval(
-    simulateSensors,
+    updateSensors,
     3000
 );
+
+
+updateRisk();

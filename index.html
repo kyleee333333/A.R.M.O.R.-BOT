@@ -1,418 +1,627 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A.R.M.O.R. BOT | Monitoring Dashboard</title>
 
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
 
-    <!-- PeerJS -->
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>
+A.R.M.O.R. BOT | Flood Monitoring System
+</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
 </head>
+
 
 <body>
 
-    <aside class="sidebar">
 
-        <div class="logo">
-            <div class="robot">🤖</div>
-            <h2>A.R.M.O.R. BOT</h2>
-            <p>FLOOD MONITORING SYSTEM</p>
+<!-- =====================================
+     SIDEBAR
+===================================== -->
+
+<aside class="sidebar">
+
+    <div class="logo">
+
+        <div class="robot-logo">
+            🤖
         </div>
 
-        <div class="nav active">📊 Dashboard</div>
-        <div class="nav">🤖 Robot Status</div>
-        <div class="nav">🌊 Water Monitoring</div>
-        <div class="nav">📹 Live Camera</div>
-        <div class="nav">📍 Location</div>
-        <div class="nav">📜 History</div>
+        <h2>
+            A.R.M.O.R. BOT
+        </h2>
 
-    </aside>
+        <p>
+            FLOOD MONITORING SYSTEM
+        </p>
+
+    </div>
 
 
-    <main>
+    <div class="nav active">
+        📊 Dashboard
+    </div>
 
-        <header>
+    <div class="nav">
+        🤖 Robot Status
+    </div>
+
+    <div class="nav">
+        🌊 Water Monitoring
+    </div>
+
+    <div class="nav">
+        📹 Live Camera
+    </div>
+
+    <div class="nav">
+        📍 Location
+    </div>
+
+</aside>
+
+
+
+<!-- =====================================
+     MAIN
+===================================== -->
+
+<main>
+
+
+<header>
+
+    <div>
+
+        <h1>
+            A.R.M.O.R. BOT
+        </h1>
+
+        <p>
+            Arduino-Driven Robotic Monitoring of Overflow Risks
+        </p>
+
+    </div>
+
+
+    <div class="system-online">
+
+        <span></span>
+
+        SYSTEM ONLINE
+
+    </div>
+
+</header>
+
+
+
+<!-- =====================================
+     DEVICE MODE
+===================================== -->
+
+<section class="mode-panel">
+
+    <h2>
+        Select Device Mode
+    </h2>
+
+    <p>
+        Use the same website on both devices.
+    </p>
+
+
+    <div class="mode-buttons">
+
+        <button
+        id="cameraModeButton"
+        onclick="enableCameraMode()">
+
+            📱 PHONE CAMERA
+
+        </button>
+
+
+        <button
+        id="monitorModeButton"
+        onclick="enableMonitorMode()">
+
+            💻 LAPTOP MONITOR
+
+        </button>
+
+    </div>
+
+
+    <div
+    id="modeStatus"
+    class="mode-status">
+
+        No mode selected.
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================
+     CAMERA CONTROL
+===================================== -->
+
+<section
+id="cameraControl"
+class="panel hidden">
+
+    <div class="panel-header">
+
+        <h2>
+            📱 Phone Camera
+        </h2>
+
+        <span id="cameraConnectionStatus">
+            OFFLINE
+        </span>
+
+    </div>
+
+
+    <video
+    id="localVideo"
+    autoplay
+    muted
+    playsinline>
+    </video>
+
+
+    <div class="camera-id-box">
+
+        <p>
+            Your Camera ID
+        </p>
+
+
+        <strong id="cameraId">
+            Connecting...
+        </strong>
+
+    </div>
+
+
+    <button
+    id="startCameraButton"
+    onclick="startPhoneCamera()">
+
+        📷 START CAMERA
+
+    </button>
+
+
+    <p class="camera-instruction">
+
+        Open this same website on the laptop,
+        select Monitor Mode, and enter this ID.
+
+    </p>
+
+</section>
+
+
+
+<!-- =====================================
+     MONITOR CONTROL
+===================================== -->
+
+<section
+id="monitorControl"
+class="panel hidden">
+
+    <div class="panel-header">
+
+        <h2>
+            💻 Laptop Monitor
+        </h2>
+
+        <span id="monitorStatus">
+            WAITING
+        </span>
+
+    </div>
+
+
+    <div class="connect-box">
+
+        <input
+        id="phoneCameraId"
+        type="text"
+        placeholder="Enter Phone Camera ID">
+
+
+        <button
+        onclick="connectToPhone()">
+
+            CONNECT
+
+        </button>
+
+    </div>
+
+</section>
+
+
+
+<!-- =====================================
+     LIVE CAMERA
+===================================== -->
+
+<section class="panel">
+
+    <div class="panel-header">
+
+        <h2>
+            📹 LIVE ROBOT CAMERA
+        </h2>
+
+        <span id="liveCameraStatus">
+            NO CAMERA
+        </span>
+
+    </div>
+
+
+    <div class="camera-view">
+
+        <video
+        id="remoteVideo"
+        autoplay
+        playsinline>
+        </video>
+
+
+        <div
+        id="cameraPlaceholder"
+        class="camera-placeholder">
 
             <div>
-                <h1>Flood Monitoring Dashboard</h1>
-
-                <p>
-                    A.R.M.O.R. BOT — Real-Time Overflow Risk Monitoring
-                </p>
+                📹
             </div>
 
-            <div class="online">
-                <span></span>
-                SYSTEM ONLINE
-            </div>
+            <h3>
+                Camera Offline
+            </h3>
 
-        </header>
+            <p>
+                Connect the phone camera
+                to view the live feed.
+            </p>
 
+        </div>
 
-        <!-- ALERT -->
+    </div>
 
-        <section id="alertBox" class="alert safe">
+</section>
 
-            <div>
-                <strong id="alertTitle">
-                    SYSTEM NORMAL
-                </strong>
 
-                <p id="alertText">
-                    Flood monitoring system is operating normally.
-                </p>
-            </div>
 
-        </section>
+<!-- =====================================
+     ALERT
+===================================== -->
 
+<section
+id="alertBox"
+class="alert safe">
 
-        <!-- SENSOR CARDS -->
+    <strong id="alertTitle">
 
-        <section class="cards">
+        SYSTEM NORMAL
 
-            <div class="card">
-                <div class="card-title">
-                    🌊 WATER LEVEL
-                </div>
+    </strong>
 
-                <div class="value">
-                    <span id="waterLevel">35</span>
-                    <small>cm</small>
-                </div>
 
-                <p class="safe-text">
-                    Safe Level
-                </p>
-            </div>
+    <p id="alertText">
 
+        A.R.M.O.R. BOT is monitoring
+        the environment.
 
-            <div class="card">
-                <div class="card-title">
-                    🌧️ RAINFALL
-                </div>
+    </p>
 
-                <div class="value">
-                    <span id="rainfall">4</span>
-                    <small>mm/h</small>
-                </div>
+</section>
 
-                <p class="safe-text">
-                    Light Rain
-                </p>
-            </div>
 
 
-            <div class="card">
-                <div class="card-title">
-                    🌡️ TEMPERATURE
-                </div>
+<!-- =====================================
+     SENSOR CARDS
+===================================== -->
 
-                <div class="value">
-                    <span id="temperature">29</span>
-                    <small>°C</small>
-                </div>
+<section class="cards">
 
-                <p class="safe-text">
-                    Normal
-                </p>
-            </div>
 
+<div class="card">
 
-            <div class="card">
-                <div class="card-title">
-                    ⚠️ FLOOD RISK
-                </div>
+    <div class="card-title">
 
-                <div class="value" id="risk">
-                    LOW
-                </div>
+        🌊 WATER LEVEL
 
-                <p id="riskText" class="safe-text">
-                    Monitoring
-                </p>
-            </div>
+    </div>
 
-        </section>
 
+    <div class="value">
 
-        <section class="grid">
+        <span id="waterLevel">
+            35
+        </span>
 
+        <small>
+            cm
+        </small>
 
-            <!-- LEFT SIDE -->
+    </div>
 
-            <div>
 
+    <p class="safe-text">
+        SAFE
+    </p>
 
-                <!-- LIVE CAMERA -->
+</div>
 
-                <section class="panel">
 
-                    <div class="panel-header">
 
-                        <h2>📹 Live Camera</h2>
+<div class="card">
 
-                        <span id="cameraStatus">
-                            WAITING FOR PHONE
-                        </span>
+    <div class="card-title">
 
-                    </div>
+        🌧️ RAINFALL
 
+    </div>
 
-                    <div class="camera-container">
 
-                        <video
-                            id="remoteVideo"
-                            autoplay
-                            playsinline>
-                        </video>
+    <div class="value">
 
+        <span id="rainfall">
+            4
+        </span>
 
-                        <div
-                            id="cameraPlaceholder"
-                            class="camera-placeholder">
+        <small>
+            mm/h
+        </small>
 
-                            <div>📱</div>
+    </div>
 
-                            <h3>
-                                Waiting for Phone Camera
-                            </h3>
 
-                            <p>
-                                Enter the Phone Camera ID below.
-                            </p>
+    <p class="safe-text">
+        NORMAL
+    </p>
 
-                        </div>
+</div>
 
-                    </div>
 
 
-                    <div class="camera-controls">
+<div class="card">
 
-                        <input
-                            type="text"
-                            id="phoneId"
-                            placeholder="Enter Phone Camera ID">
+    <div class="card-title">
 
-                        <button onclick="connectCamera()">
-                            Connect Camera
-                        </button>
+        🌡️ TEMPERATURE
 
-                    </div>
+    </div>
 
-                </section>
 
+    <div class="value">
 
-                <!-- WATER LEVEL -->
+        <span id="temperature">
+            29
+        </span>
 
-                <section class="panel">
+        <small>
+            °C
+        </small>
 
-                    <div class="panel-header">
+    </div>
 
-                        <h2>🌊 Water Level</h2>
 
-                        <span>
-                            REAL-TIME
-                        </span>
+    <p class="safe-text">
+        NORMAL
+    </p>
 
-                    </div>
+</div>
 
 
-                    <div class="water-container">
 
-                        <div
-                            id="water"
-                            class="water">
-                        </div>
+<div class="card">
 
-                        <div class="water-number">
+    <div class="card-title">
 
-                            <strong id="waterDisplay">
-                                35
-                            </strong>
+        ⚠️ FLOOD RISK
 
-                            <span>
-                                cm
-                            </span>
+    </div>
 
-                        </div>
 
-                    </div>
+    <div
+    id="risk"
+    class="value">
 
-                </section>
+        LOW
 
+    </div>
 
-                <!-- ACTIVITY -->
 
-                <section class="panel">
+    <p
+    id="riskText"
+    class="safe-text">
 
-                    <div class="panel-header">
+        MONITORING
 
-                        <h2>📜 System Activity</h2>
+    </p>
 
-                    </div>
+</div>
 
-                    <div id="logs">
 
-                        <div class="log">
-                            🟢
-                            <span>
-                                System started successfully.
-                            </span>
-                        </div>
+</section>
 
-                        <div class="log">
-                            🟢
-                            <span>
-                                Waiting for robot connection.
-                            </span>
-                        </div>
 
-                    </div>
 
-                </section>
+<!-- =====================================
+     TWO COLUMN AREA
+===================================== -->
 
-            </div>
+<section class="dashboard-grid">
 
 
-            <!-- RIGHT SIDE -->
+<!-- ROBOT STATUS -->
 
-            <div>
+<div class="panel">
 
+    <div class="panel-header">
 
-                <!-- ROBOT -->
+        <h2>
+            🤖 Robot Status
+        </h2>
 
-                <section class="panel">
+        <span class="green">
+            ONLINE
+        </span>
 
-                    <div class="panel-header">
+    </div>
 
-                        <h2>🤖 Robot Status</h2>
 
-                        <span class="green">
-                            ONLINE
-                        </span>
+    <div class="robot-display">
 
-                    </div>
+        <div class="big-robot">
+            🤖
+        </div>
 
 
-                    <div class="robot-display">
+        <h3>
+            A.R.M.O.R. BOT
+        </h3>
 
-                        <div class="big-robot">
-                            🤖
-                        </div>
 
-                        <h3>
-                            A.R.M.O.R. BOT
-                        </h3>
+        <p class="green">
+            ● ACTIVE
+        </p>
 
-                        <p class="green">
-                            ● ACTIVE
-                        </p>
+    </div>
 
-                    </div>
 
+    <div class="robot-info">
 
-                    <div class="robot-info">
+        <div>
 
-                        <div>
-                            <small>Battery</small>
-                            <strong>87%</strong>
-                        </div>
+            <small>
+                Battery
+            </small>
 
-                        <div>
-                            <small>Signal</small>
-                            <strong>98%</strong>
-                        </div>
+            <strong>
+                87%
+            </strong>
 
-                        <div>
-                            <small>Mode</small>
-                            <strong>AUTO</strong>
-                        </div>
+        </div>
 
-                        <div>
-                            <small>Sensors</small>
-                            <strong>ACTIVE</strong>
-                        </div>
 
-                    </div>
+        <div>
 
-                </section>
+            <small>
+                Signal
+            </small>
 
+            <strong>
+                98%
+            </strong>
 
-                <!-- RISK -->
+        </div>
 
-                <section class="panel">
 
-                    <div class="panel-header">
+        <div>
 
-                        <h2>⚠️ Flood Risk</h2>
+            <small>
+                Mode
+            </small>
 
-                    </div>
+            <strong>
+                AUTO
+            </strong>
 
+        </div>
 
-                    <div class="risk-bar">
 
-                        <div
-                            id="riskBar"
-                            class="risk-fill">
-                        </div>
+        <div>
 
-                    </div>
+            <small>
+                Sensors
+            </small>
 
+            <strong>
+                ACTIVE
+            </strong>
 
-                    <div class="risk-label">
+        </div>
 
-                        <span>SAFE</span>
+    </div>
 
-                        <strong id="riskPercent">
-                            20%
-                        </strong>
+</div>
 
-                        <span>CRITICAL</span>
 
-                    </div>
 
-                </section>
+<!-- FLOOD RISK -->
 
+<div class="panel">
 
-                <!-- LOCATION -->
+    <div class="panel-header">
 
-                <section class="panel">
+        <h2>
+            ⚠️ Flood Risk
+        </h2>
 
-                    <div class="panel-header">
+    </div>
 
-                        <h2>📍 Robot Location</h2>
 
-                    </div>
+    <div class="risk-bar">
 
+        <div
+        id="riskBar"
+        class="risk-fill">
 
-                    <div class="location">
+        </div>
 
-                        <div>
-                            📍
-                        </div>
+    </div>
 
-                        <p>
-                            GPS LOCATION
-                        </p>
 
-                        <small>
-                            Waiting for GPS data
-                        </small>
+    <div class="risk-label">
 
-                    </div>
+        <span>
+            SAFE
+        </span>
 
-                </section>
+        <strong id="riskPercent">
+            20%
+        </strong>
 
-            </div>
+        <span>
+            CRITICAL
+        </span>
 
-        </section>
+    </div>
 
-    </main>
+</div>
 
 
-    <script src="script.js"></script>
+</section>
+
+
+</main>
+
+
+
+<script src="script.js"></script>
+
 
 </body>
+
 </html>
