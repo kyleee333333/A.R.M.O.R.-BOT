@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>A.R.M.O.R. BOT Camera</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+</head>
+
+
+<body class="camera-page">
+
+
+    <div class="phone-camera">
+
+        <div class="camera-header">
+
+            <h1>
+                🤖 A.R.M.O.R. BOT
+            </h1>
+
+            <p>
+                ROBOT CAMERA
+            </p>
+
+        </div>
+
+
+        <video
+            id="localVideo"
+            autoplay
+            muted
+            playsinline>
+        </video>
+
+
+        <div class="camera-info">
+
+            <h2>
+                PHONE CAMERA
+            </h2>
+
+            <p>
+                Your Camera ID:
+            </p>
+
+
+            <div
+                id="peerId"
+                class="peer-id">
+
+                Connecting...
+
+            </div>
+
+
+            <p class="instruction">
+
+                Enter this ID on the
+                A.R.M.O.R. BOT laptop dashboard.
+
+            </p>
+
+
+            <button onclick="startCamera()">
+
+                📷 Start Camera
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+<script>
+
+    let peer;
+
+    let localStream;
+
+
+    /*
+    ========================================
+    CREATE PHONE CONNECTION
+    ========================================
+    */
+
+    peer = new Peer();
+
+
+    peer.on(
+        "open",
+        function(id) {
+
+            document.getElementById(
+                "peerId"
+            ).textContent = id;
+
+            console.log(
+                "Phone Camera ID:",
+                id
+            );
+
+        }
+    );
+
+
+    /*
+    ========================================
+    START PHONE CAMERA
+    ========================================
+    */
+
+    async function startCamera() {
+
+        try {
+
+            localStream =
+                await navigator.mediaDevices
+                .getUserMedia({
+
+                    video: {
+                        facingMode: {
+                            ideal: "environment"
+                        }
+                    },
+
+                    audio: false
+
+                });
+
+
+            document.getElementById(
+                "localVideo"
+            ).srcObject = localStream;
+
+
+            alert(
+                "Camera started! Give the Camera ID to the laptop."
+            );
+
+
+        }
+
+        catch(error) {
+
+            console.error(error);
+
+            alert(
+                "Unable to access camera. Please allow camera permission."
+            );
+
+        }
+
+    }
+
+
+    /*
+    ========================================
+    WAIT FOR LAPTOP CALL
+    ========================================
+    */
+
+    peer.on(
+        "call",
+        function(call) {
+
+            if (!localStream) {
+
+                alert(
+                    "Start the camera first!"
+                );
+
+                return;
+
+            }
+
+
+            call.answer(
+                localStream
+            );
+
+
+            console.log(
+                "Laptop connected!"
+            );
+
+        }
+    );
+
+</script>
+
+</body>
+
+</html>
