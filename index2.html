@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tank Monitor</title>
+<style>
+  :root {
+    --bg: #0B1420;
+    --panel: #101D2E;
+    --panel-border: #1E3049;
+    --ink: #DCE8F5;
+    --ink-dim: #6E859E;
+    --cyan: #3FD0C9;
+    --amber: #E8A23D;
+    --red: #E8573D;
+    --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(63,208,201,0.06), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(63,208,201,0.04), transparent 40%);
+    color: var(--ink);
+    font-family: var(--sans);
+    padding: 32px 20px 60px;
+  }
+
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  h1 {
+    font-size: 22px;
+    letter-spacing: 0.02em;
+    margin: 0 0 4px;
+    font-weight: 600;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin: 0 0 6px;
+  }
+
+  .status-line {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+
+  .dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    margin-right: 6px;
+    background: var(--ink-dim);
+  }
+  .dot.live { background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+  .dot.down { background: var(--red); }
+
+  .config {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  input[type=text] {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    width: 190px;
+    outline: none;
+  }
+  input[type=text]:focus { border-color: var(--cyan); }
+
+  button {
+    background: var(--cyan);
+    color: #06110F;
+    border: none;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button:hover { filter: brightness(1.08); }
+
+  .alert-banner {
+    display: none;
+    background: rgba(232, 87, 61, 0.12);
+    border: 1px solid rgba(232, 87, 61, 0.4);
+    color: var(--red);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+  }
+  .alert-banner.show { display: block; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card .label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 14px;
+  }
+
+  .card .value {
+    font-family: var(--mono);
+    font-size: 40px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .card .unit { font-size: 16px; color: var(--ink-dim); margin-left: 2px; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--ink-dim);
+  }
+  .badge .ring {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--ink-dim);
+    flex-shrink: 0;
+  }
+  .card.wet .badge { color: var(--red); }
+  .card.wet .badge .ring { background: var(--red); border-color: var(--red); box-shadow: 0 0 10px var(--red); }
+  .card.dry .badge { color: var(--cyan); }
+  .card.dry .badge .ring { border-color: var(--cyan); }
+
+  .wide-card {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer {
+    margin-top: 32px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <p class="eyebrow">Live Readout</p>
+      <h1>Tank Monitor</h1>
+      <p class="status-line"><span class="dot" id="statusDot"></span><span id="statusText">Not connected</span></p>
+    </div>
+    <div class="config">
+      <input type="text" id="ipInput" placeholder="192.168.1.42" />
+      <button onclick="saveIP()">Connect</button>
+    </div>
+  </header>
+
+  <div class="alert-banner" id="alertBanner">⚠ Water detected on one or more sensors</div>
+
+  <div class="grid">
+    <div class="card" id="s1card">
+      <div class="label">Sensor 1</div>
+      <div class="badge"><span class="ring"></span><span id="s1">--</span></div>
+    </div>
+    <div class="card" id="s2card">
+      <div class="label">Sensor 2</div>
+      <div class="badge"><span class="ring"></span><span id="s2">--</span></div>
+    </div>
+    <div class="card" id="s3card">
+      <div class="label">Sensor 3</div>
+      <div class="badge"><span class="ring"></span><span id="s3">--</span></div>
+    </div>
+  </div>
+
+  <div class="wide-card">
+    <div>
+      <div class="label" style="margin-bottom:6px;">Ultrasonic Distance</div>
+      <div class="value" style="font-size:28px;"><span id="dist">--</span><span class="unit">cm</span></div>
+    </div>
+    <div class="label" id="lastUpdate" style="margin:0;">Waiting for data...</div>
+  </div>
+
+  <footer>ESP32 · polling every 2s · <span id="ipDisplay">no device configured</span></footer>
+
+</div>
+
+<script>
+  const LOW_THRESHOLD = 20;
+  let pollTimer = null;
+
+  function getIP() {
+    return localStorage.getItem('esp32_ip') || '';
+  }
+
+  function saveIP() {
+    const val = document.getElementById('ipInput').value.trim();
+    if (!val) return;
+    localStorage.setItem('esp32_ip', val);
+    document.getElementById('ipDisplay').textContent = val;
+    restartPolling();
+  }
+
+  function setStatus(state, text) {
+    const dot = document.getElementById('statusDot');
+    dot.className = 'dot' + (state === 'live' ? ' live' : state === 'down' ? ' down' : '');
+    document.getElementById('statusText').textContent = text;
+  }
+
+  function updateBadge(cardEl, textEl, isWet) {
+    textEl.textContent = isWet ? 'WET' : 'DRY';
+    cardEl.classList.toggle('wet', isWet);
+    cardEl.classList.toggle('dry', !isWet);
+  }
+
+  async function poll() {
+    const ip = getIP();
+    if (!ip) { setStatus('down', 'No device configured'); return; }
+
+    try {
+      const res = await fetch(`http://${ip}/data`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('bad response');
+      const data = await res.json();
+
+      updateBadge(document.getElementById('s1card'), document.getElementById('s1'), data.sensor1);
+      updateBadge(document.getElementById('s2card'), document.getElementById('s2'), data.sensor2);
+      updateBadge(document.getElementById('s3card'), document.getElementById('s3'), data.sensor3);
+      document.getElementById('dist').textContent = data.distance;
+
+      document.getElementById('alertBanner').classList.toggle('show', !!data.alert);
+      document.getElementById('lastUpdate').textContent = 'Updated ' + new Date().toLocaleTimeString();
+
+      setStatus('live', `Connected · ${ip}`);
+    } catch (err) {
+      setStatus('down', `Can't reach ${ip} (check same WiFi network, or browser is blocking mixed content)`);
+    }
+  }
+
+  function restartPolling() {
+    if (pollTimer) clearInterval(pollTimer);
+    poll();
+    pollTimer = setInterval(poll, 2000);
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedIP = getIP();
+    if (savedIP) {
+      document.getElementById('ipInput').value = savedIP;
+      document.getElementById('ipDisplay').textContent = savedIP;
+    }
+    restartPolling();
+  });
+</script>
+</body>
+</html>
