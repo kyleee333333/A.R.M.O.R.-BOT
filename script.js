@@ -1,3 +1,4 @@
+```javascript
 // ==========================================
 // A.R.M.O.R. BOT
 // ESP32 FLOOD MONITORING SYSTEM
@@ -10,12 +11,13 @@
 
 const DEFAULTS = {
 
-    maxHeight: 40,
+    // Machine height
+    maxHeight: 220.98,
 
+    // These are kept for the settings page,
+    // but THEY DO NOT CONTROL FLOOD STATUS.
     lowThreshold: 0,
-
     mediumThreshold: 40,
-
     highThreshold: 70,
 
     espIp: '',
@@ -100,6 +102,10 @@ function saveSettings() {
 // ==========================================
 // CALCULATE WATER LEVEL
 // ==========================================
+// IMPORTANT:
+// Ultrasonic ONLY calculates water level.
+// It does NOT determine SAFE/WARNING/CRITICAL.
+// ==========================================
 
 function calcLevel(distance) {
 
@@ -112,7 +118,6 @@ function calcLevel(distance) {
         return null;
 
     }
-
 
     return clamp(
 
@@ -132,43 +137,47 @@ function calcLevel(distance) {
 
 
 // ==========================================
-// DETERMINE STATUS
+// DETERMINE FLOOD STATUS
+// ==========================================
+// SENSOR-ONLY STATUS
+//
+// HIGH   = CRITICAL
+// MEDIUM = WARNING
+// LOW    = WARNING
+// NONE   = SAFE
+//
+// ULTRASONIC IS COMPLETELY IGNORED.
 // ==========================================
 
 function deriveStatus(data) {
 
-    if (
+    const high =
+        data.highSensor === true;
 
-        data.highSensor === true ||
+    const medium =
+        data.mediumSensor === true;
 
-        (
-            typeof data.waterLevel === 'number' &&
-            data.waterLevel >= settings.highThreshold
-        )
+    const low =
+        data.lowSensor === true;
 
-    ) {
+
+    // HIGH SENSOR = CRITICAL
+    if (high) {
 
         return 'CRITICAL';
 
     }
 
 
-    if (
-
-        data.mediumSensor === true ||
-
-        (
-            typeof data.waterLevel === 'number' &&
-            data.waterLevel >= settings.mediumThreshold
-        )
-
-    ) {
+    // LOW OR MEDIUM = WARNING
+    if (medium || low) {
 
         return 'WARNING';
 
     }
 
 
+    // ALL SENSORS OFF = SAFE
     return 'SAFE';
 
 }
@@ -195,7 +204,9 @@ function safeData(raw) {
     };
 
 
+    // ======================================
     // LOW SENSOR
+    // ======================================
 
     data.lowSensor =
         typeof data.lowSensor === 'boolean'
@@ -203,7 +214,9 @@ function safeData(raw) {
             : null;
 
 
+    // ======================================
     // MEDIUM SENSOR
+    // ======================================
 
     data.mediumSensor =
         typeof data.mediumSensor === 'boolean'
@@ -211,7 +224,9 @@ function safeData(raw) {
             : null;
 
 
+    // ======================================
     // HIGH SENSOR
+    // ======================================
 
     data.highSensor =
         typeof data.highSensor === 'boolean'
@@ -219,7 +234,9 @@ function safeData(raw) {
             : null;
 
 
+    // ======================================
     // DISTANCE
+    // ======================================
 
     data.distance =
 
@@ -234,7 +251,11 @@ function safeData(raw) {
             : null;
 
 
+    // ======================================
     // WATER LEVEL
+    // ======================================
+    // Ultrasonic is used ONLY here.
+    // ======================================
 
     data.waterLevel =
 
@@ -253,19 +274,20 @@ function safeData(raw) {
             );
 
 
+    // ======================================
     // STATUS
+    // ======================================
+    // DO NOT TRUST waterLevel OR raw status.
+    // Always calculate from the 3 sensors.
+    // ======================================
 
     data.status =
-
-        ['SAFE', 'WARNING', 'CRITICAL']
-            .includes(data.status)
-
-            ? data.status
-
-            : deriveStatus(data);
+        deriveStatus(data);
 
 
+    // ======================================
     // TIMESTAMP
+    // ======================================
 
     data.timestamp =
         data.timestamp ||
@@ -292,25 +314,37 @@ function setConnection(online) {
 
     if (online) {
 
-        dot.className =
-            'dot online';
+        if (dot) {
+            dot.className =
+                'dot online';
+        }
 
-        text.textContent =
-            'ESP32 ONLINE';
+        if (text) {
+            text.textContent =
+                'ESP32 ONLINE';
+        }
 
-        system.textContent =
-            'Online';
+        if (system) {
+            system.textContent =
+                'Online';
+        }
 
     } else {
 
-        dot.className =
-            'dot offline';
+        if (dot) {
+            dot.className =
+                'dot offline';
+        }
 
-        text.textContent =
-            'ESP32 OFFLINE';
+        if (text) {
+            text.textContent =
+                'ESP32 OFFLINE';
+        }
 
-        system.textContent =
-            'Offline';
+        if (system) {
+            system.textContent =
+                'Offline';
+        }
 
     }
 
@@ -411,9 +445,13 @@ function updateUI(data) {
     setConnection(true);
 
 
-    $('lastData').textContent =
-        'Last data received: ' +
-        fmtTime(data.timestamp);
+    if ($('lastData')) {
+
+        $('lastData').textContent =
+            'Last data received: ' +
+            fmtTime(data.timestamp);
+
+    }
 
 
     // ======================================
@@ -424,57 +462,77 @@ function updateUI(data) {
         data.waterLevel;
 
 
-    $('waterLevel').textContent =
+    if ($('waterLevel')) {
 
-        level === null
+        $('waterLevel').textContent =
 
-            ? 'N/A'
+            level === null
 
-            : Math.round(level) + '%';
+                ? 'N/A'
 
+                : Math.round(level) + '%';
 
-    $('liveLevel').textContent =
-
-        level === null
-
-            ? 'N/A'
-
-            : level.toFixed(1) + '%';
+    }
 
 
-    $('waterDetailPercent').textContent =
+    if ($('liveLevel')) {
 
-        level === null
+        $('liveLevel').textContent =
 
-            ? 'N/A'
+            level === null
 
-            : level.toFixed(1) + '%';
+                ? 'N/A'
+
+                : level.toFixed(1) + '%';
+
+    }
+
+
+    if ($('waterDetailPercent')) {
+
+        $('waterDetailPercent').textContent =
+
+            level === null
+
+                ? 'N/A'
+
+                : level.toFixed(1) + '%';
+
+    }
 
 
     // ======================================
     // GAUGE
     // ======================================
 
-    $('gaugeFill').style.height =
+    if ($('gaugeFill')) {
 
-        (
-            level === null
-                ? 0
-                : level
-        ) + '%';
+        $('gaugeFill').style.height =
+
+            (
+                level === null
+                    ? 0
+                    : level
+            ) + '%';
+
+    }
 
 
     // ======================================
     // WATER BAR
     // ======================================
 
-    $('waterBarFill').style.width =
+    if ($('waterBarFill')) {
 
-        (
-            level === null
-                ? 0
-                : level
-        ) + '%';
+        $('waterBarFill').style.width =
+
+            (
+                level === null
+                    ? 0
+                    : level
+            ) + '%';
+
+    }
 
 
     // ======================================
@@ -491,143 +549,210 @@ function updateUI(data) {
               ' cm';
 
 
-    $('distance').textContent =
-        distanceText;
+    if ($('distance')) {
+
+        $('distance').textContent =
+            distanceText;
+
+    }
 
 
-    $('liveDistance').textContent =
-        distanceText;
+    if ($('liveDistance')) {
+
+        $('liveDistance').textContent =
+            distanceText;
+
+    }
 
 
-    $('waterDetailDistance').textContent =
-        distanceText;
+    if ($('waterDetailDistance')) {
+
+        $('waterDetailDistance').textContent =
+            distanceText;
+
+    }
 
 
     // ======================================
     // MAX HEIGHT
     // ======================================
 
-    $('maxHeightDisplay').textContent =
-        settings.maxHeight + ' cm';
+    if ($('maxHeightDisplay')) {
+
+        $('maxHeightDisplay').textContent =
+            settings.maxHeight + ' cm';
+
+    }
 
 
-    $('waterDetailMax').textContent =
-        settings.maxHeight + ' cm';
+    if ($('waterDetailMax')) {
+
+        $('waterDetailMax').textContent =
+            settings.maxHeight + ' cm';
+
+    }
 
 
     // ======================================
     // STATUS
     // ======================================
+    // This status was already calculated
+    // using ONLY the 3 water sensors.
+    // ======================================
 
     const status =
-        data.status;
+        deriveStatus(data);
 
 
-    $('statusTitle').textContent =
-
-        status === 'CRITICAL'
-
-            ? 'CRITICAL FLOOD LEVEL'
-
-            : status;
-
-
-    $('liveStatus').textContent =
+    data.status =
         status;
 
 
-    $('waterDetailStatus').textContent =
-        status;
+    if ($('statusTitle')) {
+
+        $('statusTitle').textContent =
+
+            status === 'CRITICAL'
+
+                ? 'CRITICAL FLOOD LEVEL'
+
+                : status;
+
+    }
+
+
+    if ($('liveStatus')) {
+
+        $('liveStatus').textContent =
+            status;
+
+    }
+
+
+    if ($('waterDetailStatus')) {
+
+        $('waterDetailStatus').textContent =
+            status;
+
+    }
 
 
     // ======================================
     // STATUS DESCRIPTION
     // ======================================
 
-    $('liveStatusSmall').textContent =
+    if ($('liveStatusSmall')) {
 
-        status === 'SAFE'
+        $('liveStatusSmall').textContent =
 
-            ? 'Normal condition'
+            status === 'SAFE'
 
-            : status === 'WARNING'
+                ? 'Normal condition'
 
-                ? 'Water level is rising'
+                : status === 'WARNING'
 
-                : 'Immediate attention required';
+                    ? 'Water sensor warning detected'
+
+                    : 'High-level sensor activated';
+
+    }
 
 
-    $('statusDescription').textContent =
+    if ($('statusDescription')) {
 
-        status === 'CRITICAL'
+        $('statusDescription').textContent =
 
-            ? 'Water level has reached the critical level. Immediate attention is required.'
+            status === 'CRITICAL'
 
-            : status === 'WARNING'
+                ? 'The HIGH water sensor is active. Immediate attention is required.'
 
-                ? 'Water level is rising. Monitor the situation closely.'
+                : status === 'WARNING'
 
-                : 'Water level is currently within the safe range.';
+                    ? 'A LOW or MEDIUM water sensor is active. Monitor the situation closely.'
+
+                    : 'All water-level sensors are currently inactive.';
+
+    }
 
 
     // ======================================
     // STATUS CARD
     // ======================================
 
-    $('statusCard').className =
-        'status-card ' +
-        status.toLowerCase();
+    if ($('statusCard')) {
+
+        $('statusCard').className =
+            'status-card ' +
+            status.toLowerCase();
+
+    }
 
 
     // ======================================
     // STATUS ICON
     // ======================================
 
-    $('statusIcon').textContent =
+    if ($('statusIcon')) {
 
-        status === 'CRITICAL'
+        $('statusIcon').textContent =
 
-            ? '!'
+            status === 'CRITICAL'
 
-            : status === 'WARNING'
+                ? '!'
 
-                ? '⚠'
+                : status === 'WARNING'
 
-                : '✓';
+                    ? '⚠'
+
+                    : '✓';
+
+    }
 
 
     // ======================================
     // ALERT BANNER
     // ======================================
 
-    $('alertTitle').textContent =
+    if ($('alertTitle')) {
 
-        status === 'CRITICAL'
+        $('alertTitle').textContent =
 
-            ? 'CRITICAL FLOOD ALERT'
+            status === 'CRITICAL'
 
-            : status === 'WARNING'
+                ? 'CRITICAL FLOOD ALERT'
 
-                ? 'WATER LEVEL WARNING'
+                : status === 'WARNING'
 
-                : 'SYSTEM NORMAL';
+                    ? 'WATER LEVEL WARNING'
 
+                    : 'SYSTEM NORMAL';
 
-    $('alertText').textContent =
-
-        status === 'CRITICAL'
-
-            ? 'High-level sensor activated.'
-
-            : status === 'WARNING'
-
-                ? 'Water level is rising.'
-
-                : 'No active flood warning.';
+    }
 
 
-    $('alertTime').textContent =
-        fmtTime(data.timestamp);
+    if ($('alertText')) {
+
+        $('alertText').textContent =
+
+            status === 'CRITICAL'
+
+                ? 'HIGH water sensor activated.'
+
+                : status === 'WARNING'
+
+                    ? 'LOW or MEDIUM water sensor activated.'
+
+                    : 'No active flood warning.';
+
+    }
+
+
+    if ($('alertTime')) {
+
+        $('alertTime').textContent =
+            fmtTime(data.timestamp);
+
+    }
 
 
     // ======================================
@@ -656,66 +781,90 @@ function updateUI(data) {
     // LIVE SENSOR STATES
     // ======================================
 
-    $('liveLow').textContent =
+    if ($('liveLow')) {
 
-        data.lowSensor === null
+        $('liveLow').textContent =
 
-            ? 'N/A'
+            data.lowSensor === null
 
-            : data.lowSensor
-                ? 'ACTIVE'
-                : 'INACTIVE';
+                ? 'N/A'
 
+                : data.lowSensor
+                    ? 'ACTIVE'
+                    : 'INACTIVE';
 
-    $('liveMedium').textContent =
-
-        data.mediumSensor === null
-
-            ? 'N/A'
-
-            : data.mediumSensor
-                ? 'ACTIVE'
-                : 'INACTIVE';
+    }
 
 
-    $('liveHigh').textContent =
+    if ($('liveMedium')) {
 
-        data.highSensor === null
+        $('liveMedium').textContent =
 
-            ? 'N/A'
+            data.mediumSensor === null
 
-            : data.highSensor
-                ? 'ACTIVE'
-                : 'INACTIVE';
+                ? 'N/A'
+
+                : data.mediumSensor
+                    ? 'ACTIVE'
+                    : 'INACTIVE';
+
+    }
+
+
+    if ($('liveHigh')) {
+
+        $('liveHigh').textContent =
+
+            data.highSensor === null
+
+                ? 'N/A'
+
+                : data.highSensor
+                    ? 'ACTIVE'
+                    : 'INACTIVE';
+
+    }
 
 
     // ======================================
     // TIMESTAMP
     // ======================================
 
-    $('liveTimestamp').textContent =
-        fmtTime(data.timestamp);
+    if ($('liveTimestamp')) {
+
+        $('liveTimestamp').textContent =
+            fmtTime(data.timestamp);
+
+    }
 
 
     // ======================================
     // WIFI
     // ======================================
 
-    $('systemWifi').textContent =
+    if ($('systemWifi')) {
 
-        data.wifiConnected === false
+        $('systemWifi').textContent =
 
-            ? 'Disconnected'
+            data.wifiConnected === false
 
-            : 'Connected';
+                ? 'Disconnected'
+
+                : 'Connected';
+
+    }
 
 
     // ======================================
     // SYSTEM STATUS
     // ======================================
 
-    $('systemStatus').textContent =
-        'Operational';
+    if ($('systemStatus')) {
+
+        $('systemStatus').textContent =
+            'Operational';
+
+    }
 
 
     // ======================================
@@ -869,6 +1018,16 @@ function addPoint(data) {
 // ==========================================
 
 function filterChart() {
+
+    if (
+        !$('rangeSelect') ||
+        !waterChart
+    ) {
+
+        return;
+
+    }
+
 
     const minutes =
         Number(
@@ -1090,6 +1249,18 @@ let historyChart =
 
 function renderAlerts() {
 
+    if (
+        !$('alertSearch') ||
+        !$('alertFilter') ||
+        !$('alertTable') ||
+        !historyChart
+    ) {
+
+        return;
+
+    }
+
+
     const search =
         $('alertSearch')
             .value
@@ -1194,7 +1365,9 @@ function renderAlerts() {
         `;
 
 
-    // Update history graph
+    // ======================================
+    // UPDATE HISTORY GRAPH
+    // ======================================
 
     historyChart.data.labels =
         history
@@ -1266,8 +1439,12 @@ function connectWS() {
             setConnection(true);
 
 
-            $('settingsMessage').textContent =
-                'WebSocket connected successfully.';
+            if ($('settingsMessage')) {
+
+                $('settingsMessage').textContent =
+                    'WebSocket connected successfully.';
+
+            }
 
         };
 
@@ -1380,15 +1557,19 @@ async function testApi() {
             await response.json();
 
 
-        if (data.ok) {
+        if ($('settingsMessage')) {
 
-            $('settingsMessage').textContent =
-                `REST API is online. Connected websites: ${data.clients}`;
+            if (data.ok) {
 
-        } else {
+                $('settingsMessage').textContent =
+                    `REST API is online. Connected websites: ${data.clients}`;
 
-            $('settingsMessage').textContent =
-                'REST API returned an unexpected response.';
+            } else {
+
+                $('settingsMessage').textContent =
+                    'REST API returned an unexpected response.';
+
+            }
 
         }
 
@@ -1400,8 +1581,12 @@ async function testApi() {
         );
 
 
-        $('settingsMessage').textContent =
-            'REST API test failed.';
+        if ($('settingsMessage')) {
+
+            $('settingsMessage').textContent =
+                'REST API test failed.';
+
+        }
 
     }
 
@@ -1418,13 +1603,17 @@ function startDemo() {
         !demo;
 
 
-    $('demoBtn').textContent =
+    if ($('demoBtn')) {
 
-        demo
+        $('demoBtn').textContent =
 
-            ? '■ Stop Demo'
+            demo
 
-            : '▶ Demo Mode';
+                ? '■ Stop Demo'
+
+                : '▶ Demo Mode';
+
+    }
 
 
     if (demo) {
@@ -1471,39 +1660,40 @@ function startDemo() {
                         settings.maxHeight;
 
 
+                    // ==================================
+                    // DEMO SENSOR LOGIC
+                    // ==================================
+                    // This is intentionally based on
+                    // sensors, NOT ultrasonic level.
+                    // ==================================
+
+                    const lowSensor =
+                        level >= 10;
+
+                    const mediumSensor =
+                        level >= 40;
+
+                    const highSensor =
+                        level >= 70;
+
+
                     const data =
                         safeData({
 
                             lowSensor:
-                                level >= 10,
+                                lowSensor,
 
                             mediumSensor:
-                                level >=
-                                settings.mediumThreshold,
+                                mediumSensor,
 
                             highSensor:
-                                level >=
-                                settings.highThreshold,
+                                highSensor,
 
                             distance:
                                 distance,
 
                             waterLevel:
                                 level,
-
-                            status:
-
-                                level >=
-                                settings.highThreshold
-
-                                    ? 'CRITICAL'
-
-                                    : level >=
-                                      settings.mediumThreshold
-
-                                        ? 'WARNING'
-
-                                        : 'SAFE',
 
                             timestamp:
                                 new Date()
@@ -1615,10 +1805,17 @@ document
                 );
 
 
-            $('page-' + button.dataset.page)
-                .classList.add(
+            const target =
+                $('page-' + button.dataset.page);
+
+
+            if (target) {
+
+                target.classList.add(
                     'active'
                 );
+
+            }
 
 
             $('sidebar')
@@ -1635,325 +1832,365 @@ document
 // MENU
 // ==========================================
 
-$('menuBtn').onclick = () => {
+if ($('menuBtn')) {
 
-    $('sidebar')
-        .classList.toggle(
-            'open'
-        );
+    $('menuBtn').onclick = () => {
 
-};
+        $('sidebar')
+            .classList.toggle(
+                'open'
+            );
+
+    };
+
+}
 
 
 // ==========================================
 // DEMO BUTTON
 // ==========================================
 
-$('demoBtn').onclick =
-    startDemo;
+if ($('demoBtn')) {
+
+    $('demoBtn').onclick =
+        startDemo;
+
+}
 
 
 // ==========================================
 // CHART RANGE
 // ==========================================
 
-$('rangeSelect').onchange =
-    filterChart;
+if ($('rangeSelect')) {
+
+    $('rangeSelect').onchange =
+        filterChart;
+
+}
 
 
 // ==========================================
 // ALERT SEARCH
 // ==========================================
 
-$('alertSearch').oninput =
-    renderAlerts;
+if ($('alertSearch')) {
+
+    $('alertSearch').oninput =
+        renderAlerts;
+
+}
 
 
 // ==========================================
 // ALERT FILTER
 // ==========================================
 
-$('alertFilter').onchange =
-    renderAlerts;
+if ($('alertFilter')) {
+
+    $('alertFilter').onchange =
+        renderAlerts;
+
+}
 
 
 // ==========================================
 // CLEAR ALERT HISTORY
 // ==========================================
 
-$('clearBtn').onclick = () => {
+if ($('clearBtn')) {
 
-    if (
-        confirm(
-            'Clear all alert history?'
-        )
-    ) {
+    $('clearBtn').onclick = () => {
 
-        history = [];
+        if (
+            confirm(
+                'Clear all alert history?'
+            )
+        ) {
 
-
-        localStorage.setItem(
-            'floodHistory',
-            '[]'
-        );
+            history = [];
 
 
-        renderAlerts();
+            localStorage.setItem(
+                'floodHistory',
+                '[]'
+            );
 
-    }
 
-};
+            renderAlerts();
+
+        }
+
+    };
+
+}
 
 
 // ==========================================
 // EXPORT CSV
 // ==========================================
 
-$('exportBtn').onclick = () => {
+if ($('exportBtn')) {
 
-    const lines = [
+    $('exportBtn').onclick = () => {
 
-        [
-            'Time',
-            'Sensor',
-            'Water Level',
-            'Distance',
-            'Status'
-        ],
+        const lines = [
 
-        ...history.map(
-            item => [
+            [
+                'Time',
+                'Sensor',
+                'Water Level',
+                'Distance',
+                'Status'
+            ],
 
-                item.time,
+            ...history.map(
+                item => [
 
-                item.sensor,
+                    item.time,
 
-                item.waterLevel,
+                    item.sensor,
 
-                item.distance,
+                    item.waterLevel,
 
-                item.status
+                    item.distance,
 
-            ]
-        )
+                    item.status
 
-    ];
-
-
-    const csv =
-
-        lines
-            .map(
-                row =>
-                    row
-                        .map(
-                            value =>
-                                `"${String(value ?? '')
-                                    .replaceAll(
-                                        '"',
-                                        '""'
-                                    )}"`
-                        )
-                        .join(',')
+                ]
             )
-            .join('\n');
+
+        ];
 
 
-    const blob =
-        new Blob(
-            [csv],
-            {
-                type:
-                    'text/csv'
-            }
+        const csv =
+
+            lines
+                .map(
+                    row =>
+                        row
+                            .map(
+                                value =>
+                                    `"${String(value ?? '')
+                                        .replaceAll(
+                                            '"',
+                                            '""'
+                                        )}"`
+                            )
+                            .join(',')
+                )
+                .join('\n');
+
+
+        const blob =
+            new Blob(
+                [csv],
+                {
+                    type:
+                        'text/csv'
+                }
+            );
+
+
+        const url =
+            URL.createObjectURL(
+                blob
+            );
+
+
+        const link =
+            document.createElement(
+                'a'
+            );
+
+
+        link.href =
+            url;
+
+
+        link.download =
+            'flood-alert-history.csv';
+
+
+        link.click();
+
+
+        URL.revokeObjectURL(
+            url
         );
 
+    };
 
-    const url =
-        URL.createObjectURL(
-            blob
-        );
-
-
-    const link =
-        document.createElement(
-            'a'
-        );
-
-
-    link.href =
-        url;
-
-
-    link.download =
-        'flood-alert-history.csv';
-
-
-    link.click();
-
-
-    URL.revokeObjectURL(
-        url
-    );
-
-};
+}
 
 
 // ==========================================
 // SAVE SETTINGS
 // ==========================================
 
-$('saveSettings').onclick = () => {
+if ($('saveSettings')) {
 
-    const newSettings = {
+    $('saveSettings').onclick = () => {
 
-        maxHeight:
-            Number(
-                $('maxHeight').value
-            ),
+        const newSettings = {
 
-        lowThreshold:
-            Number(
-                $('lowThreshold').value
-            ),
+            maxHeight:
+                Number(
+                    $('maxHeight').value
+                ),
 
-        mediumThreshold:
-            Number(
-                $('mediumThreshold').value
-            ),
+            lowThreshold:
+                Number(
+                    $('lowThreshold').value
+                ),
 
-        highThreshold:
-            Number(
-                $('highThreshold').value
-            ),
+            mediumThreshold:
+                Number(
+                    $('mediumThreshold').value
+                ),
 
-        espIp:
-            $('espIp').value.trim(),
+            highThreshold:
+                Number(
+                    $('highThreshold').value
+                ),
 
-        wsUrl:
-            $('wsUrl').value.trim(),
+            espIp:
+                $('espIp').value.trim(),
 
-        apiUrl:
-            $('apiUrl').value.trim(),
+            wsUrl:
+                $('wsUrl').value.trim(),
 
-        updateInterval:
-            Number(
-                $('updateInterval').value
-            ),
+            apiUrl:
+                $('apiUrl').value.trim(),
 
-        timeout:
-            Number(
-                $('timeout').value
-            )
+            updateInterval:
+                Number(
+                    $('updateInterval').value
+                ),
+
+            timeout:
+                Number(
+                    $('timeout').value
+                )
+
+        };
+
+
+        // ==================================
+        // VALIDATION
+        // ==================================
+
+        if (
+            newSettings.maxHeight <= 0
+        ) {
+
+            $('settingsMessage').textContent =
+                'Maximum height must be greater than 0.';
+
+            return;
+
+        }
+
+
+        if (
+            newSettings.mediumThreshold <
+            newSettings.lowThreshold
+        ) {
+
+            $('settingsMessage').textContent =
+                'Medium threshold cannot be lower than low threshold.';
+
+            return;
+
+        }
+
+
+        if (
+            newSettings.highThreshold <
+            newSettings.mediumThreshold
+        ) {
+
+            $('settingsMessage').textContent =
+                'High threshold cannot be lower than medium threshold.';
+
+            return;
+
+        }
+
+
+        if (
+            newSettings.updateInterval < 250
+        ) {
+
+            $('settingsMessage').textContent =
+                'Update interval must be at least 250 ms.';
+
+            return;
+
+        }
+
+
+        if (
+            newSettings.timeout < 1000
+        ) {
+
+            $('settingsMessage').textContent =
+                'Connection timeout must be at least 1000 ms.';
+
+            return;
+
+        }
+
+
+        settings =
+            newSettings;
+
+
+        saveSettings();
+
+
+        $('settingsMessage').textContent =
+            'Settings saved successfully.';
+
+
+        connectWS();
+
+
+        if (latest) {
+
+            updateUI(
+                safeData(latest)
+            );
+
+        }
 
     };
 
-
-    // ======================================
-    // VALIDATION
-    // ======================================
-
-    if (
-        newSettings.maxHeight <= 0
-    ) {
-
-        $('settingsMessage').textContent =
-            'Maximum height must be greater than 0.';
-
-        return;
-
-    }
-
-
-    if (
-        newSettings.mediumThreshold <
-        newSettings.lowThreshold
-    ) {
-
-        $('settingsMessage').textContent =
-            'Medium threshold cannot be lower than low threshold.';
-
-        return;
-
-    }
-
-
-    if (
-        newSettings.highThreshold <
-        newSettings.mediumThreshold
-    ) {
-
-        $('settingsMessage').textContent =
-            'High threshold cannot be lower than medium threshold.';
-
-        return;
-
-    }
-
-
-    if (
-        newSettings.updateInterval < 250
-    ) {
-
-        $('settingsMessage').textContent =
-            'Update interval must be at least 250 ms.';
-
-        return;
-
-    }
-
-
-    if (
-        newSettings.timeout < 1000
-    ) {
-
-        $('settingsMessage').textContent =
-            'Connection timeout must be at least 1000 ms.';
-
-        return;
-
-    }
-
-
-    settings =
-        newSettings;
-
-
-    saveSettings();
-
-
-    $('settingsMessage').textContent =
-        'Settings saved successfully.';
-
-
-    connectWS();
-
-
-    if (latest) {
-
-        updateUI(
-            safeData(latest)
-        );
-
-    }
-
-};
+}
 
 
 // ==========================================
 // CONNECT BUTTON
 // ==========================================
 
-$('connectBtn').onclick =
-    connectWS;
+if ($('connectBtn')) {
+
+    $('connectBtn').onclick =
+        connectWS;
+
+}
 
 
 // ==========================================
 // TEST API BUTTON
 // ==========================================
 
-$('testApi').onclick =
-    testApi;
+if ($('testApi')) {
+
+    $('testApi').onclick =
+        testApi;
+
+}
 
 
 // ==========================================
@@ -1964,9 +2201,13 @@ setInterval(
 
     () => {
 
-        $('clock').textContent =
-            new Date()
-                .toLocaleString();
+        if ($('clock')) {
+
+            $('clock').textContent =
+                new Date()
+                    .toLocaleString();
+
+        }
 
 
         if (
@@ -2042,5 +2283,30 @@ console.log(
 );
 
 console.log(
+    'STATUS LOGIC:'
+);
+
+console.log(
+    'HIGH sensor   -> CRITICAL'
+);
+
+console.log(
+    'MEDIUM sensor -> WARNING'
+);
+
+console.log(
+    'LOW sensor    -> WARNING'
+);
+
+console.log(
+    'ALL OFF       -> SAFE'
+);
+
+console.log(
+    'Ultrasonic    -> WATER LEVEL ONLY'
+);
+
+console.log(
     '=========================================='
 );
+```

@@ -1,96 +1,192 @@
+```html
 <!doctype html>
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>A.R.M.O.R. BOT</title>
 
-  <link rel="stylesheet" href="style.css">
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
+
 
 <body>
 
 <div class="app">
 
+
+  <!-- ================================================= -->
   <!-- SIDEBAR -->
-  <aside class="sidebar" id="sidebar">
+  <!-- ================================================= -->
+
+  <aside
+    class="sidebar"
+    id="sidebar"
+  >
 
     <div class="brand">
-      <div class="brand-icon">🌊</div>
+
+      <div class="brand-icon">
+        🌊
+      </div>
 
       <div>
-        <strong>FLOOD MONITOR</strong>
-        <small>ESP32 SYSTEM</small>
+
+        <strong>
+          FLOOD MONITOR
+        </strong>
+
+        <small>
+          ESP32 SYSTEM
+        </small>
+
       </div>
+
     </div>
+
 
     <nav>
 
-      <button class="nav-btn active" data-page="dashboard">
+      <button
+        class="nav-btn active"
+        data-page="dashboard"
+      >
         ▦ <span>Dashboard</span>
       </button>
 
-      <button class="nav-btn" data-page="live">
+
+      <button
+        class="nav-btn"
+        data-page="live"
+      >
         ◉ <span>Live Monitoring</span>
       </button>
 
-      <button class="nav-btn" data-page="water">
+
+      <button
+        class="nav-btn"
+        data-page="water"
+      >
         ◒ <span>Water Level</span>
       </button>
 
-      <button class="nav-btn" data-page="graphs">
+
+      <button
+        class="nav-btn"
+        data-page="graphs"
+      >
         ⌁ <span>Graphs</span>
       </button>
 
-      <button class="nav-btn" data-page="alerts">
+
+      <button
+        class="nav-btn"
+        data-page="alerts"
+      >
         ⚠ <span>Alert History</span>
       </button>
 
-      <button class="nav-btn" data-page="settings">
+
+      <button
+        class="nav-btn"
+        data-page="settings"
+      >
         ⚙ <span>Settings</span>
       </button>
 
-      <button class="nav-btn" data-page="system">
+
+      <button
+        class="nav-btn"
+        data-page="system"
+      >
         ⓘ <span>System Information</span>
       </button>
 
     </nav>
 
+
     <div class="sidebar-footer">
-      <button id="demoBtn" class="demo-btn">
+
+      <button
+        id="demoBtn"
+        class="demo-btn"
+      >
         ▶ Demo Mode
       </button>
+
     </div>
 
   </aside>
 
 
+
+  <!-- ================================================= -->
   <!-- MAIN -->
+  <!-- ================================================= -->
+
   <main class="main">
 
+
+    <!-- ================================================= -->
     <!-- TOP BAR -->
+    <!-- ================================================= -->
+
     <header class="topbar">
 
-      <button id="menuBtn" class="menu-btn">
+      <button
+        id="menuBtn"
+        class="menu-btn"
+      >
         ☰
       </button>
 
+
       <div>
-        <h1>A.R.M.O.R. BOT</h1>
-        <p>ESP32-Based Real-Time Water Level Monitoring</p>
+
+        <h1>
+          A.R.M.O.R. BOT
+        </h1>
+
+        <p>
+          ESP32-Based Real-Time Water Level Monitoring
+        </p>
+
       </div>
+
 
       <div class="top-status">
 
-        <span id="connectionDot" class="dot offline"></span>
+        <span
+          id="connectionDot"
+          class="dot offline"
+        ></span>
+
 
         <div>
-          <b id="connectionText">ESP32 OFFLINE</b>
-          <small id="lastData">No data received</small>
+
+          <b id="connectionText">
+            ESP32 OFFLINE
+          </b>
+
+          <small id="lastData">
+            No data received
+          </small>
+
         </div>
+
 
         <span id="clock"></span>
 
@@ -99,15 +195,23 @@
     </header>
 
 
-    <!-- ========================= -->
-    <!-- DASHBOARD -->
-    <!-- ========================= -->
 
-    <section id="page-dashboard" class="page active">
+    <!-- ================================================= -->
+    <!-- DASHBOARD -->
+    <!-- ================================================= -->
+
+    <section
+      id="page-dashboard"
+      class="page active"
+    >
+
 
       <!-- FLOOD STATUS -->
 
-      <div class="status-card safe" id="statusCard">
+      <div
+        class="status-card safe"
+        id="statusCard"
+      >
 
         <div>
 
@@ -115,40 +219,55 @@
             CURRENT FLOOD STATUS
           </span>
 
+
           <h2 id="statusTitle">
             SAFE
           </h2>
 
+
           <p id="statusDescription">
-            Water level is currently within the safe range.
+            All water-level sensors are currently inactive.
           </p>
 
         </div>
 
-        <div class="status-icon" id="statusIcon">
+
+        <div
+          class="status-icon"
+          id="statusIcon"
+        >
           ✓
         </div>
 
       </div>
 
 
-      <!-- ========================= -->
-      <!-- ALARM PANEL -->
-      <!-- ========================= -->
 
-      <article class="card alarm-panel" id="alarmPanel">
+      <!-- ================================================= -->
+      <!-- ALARM PANEL -->
+      <!-- ================================================= -->
+
+      <article
+        class="card alarm-panel alarm-safe"
+        id="alarmPanel"
+      >
 
         <div class="alarm-left">
 
-          <div class="alarm-icon" id="alarmIcon">
+          <div
+            class="alarm-icon"
+            id="alarmIcon"
+          >
             🔕
           </div>
+
 
           <div>
 
             <strong id="alarmTitle">
               FLOOD ALARM
             </strong>
+
 
             <p id="alarmMessage">
               Alarm is ready. Enable the alarm to receive audible warnings.
@@ -163,14 +282,17 @@
 
           <button
             id="enableAlarmBtn"
-            type="button">
+            type="button"
+          >
             🔔 ENABLE ALARM
           </button>
+
 
           <button
             id="muteAlarmBtn"
             type="button"
-            disabled>
+            disabled
+          >
             🔇 MUTE
           </button>
 
@@ -179,13 +301,20 @@
       </article>
 
 
+
+      <!-- ================================================= -->
       <!-- SENSOR CARDS -->
+      <!-- ================================================= -->
 
       <div class="grid sensors">
 
+
+        <!-- LOW -->
+
         <article
           class="card sensor-card"
-          data-sensor="low">
+          data-sensor="low"
+        >
 
           <div class="card-head">
 
@@ -197,9 +326,11 @@
 
           </div>
 
+
           <strong id="lowStatus">
             INACTIVE
           </strong>
+
 
           <small>
             Sensor 1 · Low level detection
@@ -208,9 +339,13 @@
         </article>
 
 
+
+        <!-- MEDIUM -->
+
         <article
           class="card sensor-card"
-          data-sensor="medium">
+          data-sensor="medium"
+        >
 
           <div class="card-head">
 
@@ -222,9 +357,11 @@
 
           </div>
 
+
           <strong id="mediumStatus">
             INACTIVE
           </strong>
+
 
           <small>
             Sensor 2 · Warning level
@@ -233,9 +370,13 @@
         </article>
 
 
+
+        <!-- HIGH -->
+
         <article
           class="card sensor-card"
-          data-sensor="high">
+          data-sensor="high"
+        >
 
           <div class="card-head">
 
@@ -247,9 +388,11 @@
 
           </div>
 
+
           <strong id="highStatus">
             INACTIVE
           </strong>
+
 
           <small>
             Sensor 3 · Critical level
@@ -260,9 +403,15 @@
       </div>
 
 
+
+      <!-- ================================================= -->
       <!-- WATER LEVEL + CHART -->
+      <!-- ================================================= -->
 
       <div class="grid main-grid">
+
+
+        <!-- WATER GAUGE -->
 
         <article class="card gauge-card">
 
@@ -283,8 +432,9 @@
 
             <div
               class="gauge-fill"
-              id="gaugeFill">
-            </div>
+              id="gaugeFill"
+            ></div>
+
 
             <div class="gauge-label">
 
@@ -315,6 +465,7 @@
 
             </div>
 
+
             <div>
 
               <small>
@@ -332,6 +483,9 @@
         </article>
 
 
+
+        <!-- REAL-TIME CHART -->
+
         <article class="card chart-card">
 
           <div class="card-head">
@@ -339,6 +493,7 @@
             <h3>
               Real-Time Water Level
             </h3>
+
 
             <select id="rangeSelect">
 
@@ -382,25 +537,32 @@
       </div>
 
 
+
+      <!-- ================================================= -->
       <!-- ALERT -->
+      <!-- ================================================= -->
 
       <article
         class="card alert-banner"
-        id="alertBanner">
+        id="alertBanner"
+      >
 
         <div>
 
           <span
             class="alert-symbol"
-            id="alertSymbol">
+            id="alertSymbol"
+          >
             ✓
           </span>
+
 
           <div>
 
             <strong id="alertTitle">
               SYSTEM NORMAL
             </strong>
+
 
             <p id="alertText">
               No active flood warning.
@@ -409,6 +571,7 @@
           </div>
 
         </div>
+
 
         <span id="alertTime">
           —
@@ -419,11 +582,15 @@
     </section>
 
 
-    <!-- ========================= -->
-    <!-- LIVE MONITORING -->
-    <!-- ========================= -->
 
-    <section id="page-live" class="page">
+    <!-- ================================================= -->
+    <!-- LIVE MONITORING -->
+    <!-- ================================================= -->
+
+    <section
+      id="page-live"
+      class="page"
+    >
 
       <div class="page-title">
 
@@ -440,15 +607,18 @@
 
       <div class="grid live-grid">
 
+
         <article class="card big-metric">
 
           <span>
             WATER LEVEL
           </span>
 
+
           <strong id="liveLevel">
             0%
           </strong>
+
 
           <small>
             Calculated from ultrasonic distance
@@ -457,15 +627,18 @@
         </article>
 
 
+
         <article class="card big-metric">
 
           <span>
             ULTRASONIC DISTANCE
           </span>
 
+
           <strong id="liveDistance">
             N/A
           </strong>
+
 
           <small>
             Distance from sensor to water
@@ -474,15 +647,18 @@
         </article>
 
 
+
         <article class="card big-metric">
 
           <span>
             FLOOD STATUS
           </span>
 
+
           <strong id="liveStatus">
             SAFE
           </strong>
+
 
           <small id="liveStatusSmall">
             Normal condition
@@ -491,6 +667,7 @@
         </article>
 
       </div>
+
 
 
       <!-- LIVE ALARM -->
@@ -503,15 +680,18 @@
             Alarm Status
           </h3>
 
+
           <span id="liveAlarmStatus">
             DISABLED
           </span>
 
         </div>
 
+
         <div class="sensor-list">
 
           <div>
+
             <span>
               Alarm System
             </span>
@@ -519,9 +699,12 @@
             <b id="liveAlarm">
               OFF
             </b>
+
           </div>
 
+
           <div>
+
             <span>
               Current Flood Condition
             </span>
@@ -529,12 +712,16 @@
             <b id="liveAlarmCondition">
               SAFE
             </b>
+
           </div>
 
         </div>
 
       </article>
 
+
+
+      <!-- SENSOR STATES -->
 
       <article class="card">
 
@@ -543,6 +730,7 @@
           <h3>
             Sensor States
           </h3>
+
 
           <span id="liveTimestamp">
             No reading
@@ -554,6 +742,7 @@
         <div class="sensor-list">
 
           <div>
+
             <span>
               Sensor 1 — LOW
             </span>
@@ -561,10 +750,12 @@
             <b id="liveLow">
               INACTIVE
             </b>
+
           </div>
 
 
           <div>
+
             <span>
               Sensor 2 — MEDIUM
             </span>
@@ -572,10 +763,12 @@
             <b id="liveMedium">
               INACTIVE
             </b>
+
           </div>
 
 
           <div>
+
             <span>
               Sensor 3 — HIGH
             </span>
@@ -583,6 +776,7 @@
             <b id="liveHigh">
               INACTIVE
             </b>
+
           </div>
 
         </div>
@@ -592,17 +786,22 @@
     </section>
 
 
-    <!-- ========================= -->
-    <!-- WATER LEVEL -->
-    <!-- ========================= -->
 
-    <section id="page-water" class="page">
+    <!-- ================================================= -->
+    <!-- WATER LEVEL -->
+    <!-- ================================================= -->
+
+    <section
+      id="page-water"
+      class="page"
+    >
 
       <div class="page-title">
 
         <h2>
           Water Level
         </h2>
+
 
         <p>
           Ultrasonic measurement and calculated level.
@@ -618,6 +817,7 @@
           <strong id="waterDetailPercent">
             0%
           </strong>
+
 
           <span>
             Current water level
@@ -664,7 +864,7 @@
           <div>
 
             <small>
-              Status
+              Flood Status
             </small>
 
             <b id="waterDetailStatus">
@@ -678,13 +878,25 @@
 
         <p class="formula">
 
-          Machine Height: 7.25 feet = 220.98 cm
+          Machine Height:
+          7.25 feet = 220.98 cm
 
           <br><br>
 
           Water Level % =
           ((Maximum Height − Distance)
           ÷ Maximum Height) × 100
+
+          <br><br>
+
+          <strong>
+            Note:
+          </strong>
+
+          Ultrasonic measurement is used only for
+          water level and distance display.
+          Flood status is determined by the
+          LOW, MEDIUM, and HIGH water sensors.
 
         </p>
 
@@ -693,17 +905,22 @@
     </section>
 
 
-    <!-- ========================= -->
-    <!-- GRAPHS -->
-    <!-- ========================= -->
 
-    <section id="page-graphs" class="page">
+    <!-- ================================================= -->
+    <!-- GRAPHS -->
+    <!-- ================================================= -->
+
+    <section
+      id="page-graphs"
+      class="page"
+    >
 
       <div class="page-title">
 
         <h2>
           Graphs
         </h2>
+
 
         <p>
           Historical water-level trend stored in this browser.
@@ -721,17 +938,22 @@
     </section>
 
 
-    <!-- ========================= -->
-    <!-- ALERT HISTORY -->
-    <!-- ========================= -->
 
-    <section id="page-alerts" class="page">
+    <!-- ================================================= -->
+    <!-- ALERT HISTORY -->
+    <!-- ================================================= -->
+
+    <section
+      id="page-alerts"
+      class="page"
+    >
 
       <div class="page-title">
 
         <h2>
           Alert History
         </h2>
+
 
         <p>
           Warnings and critical events received from the monitoring system.
@@ -748,6 +970,7 @@
             id="alertSearch"
             placeholder="Search alerts..."
           >
+
 
           <select id="alertFilter">
 
@@ -777,10 +1000,9 @@
 
           <button
             id="clearBtn"
-            class="danger-btn">
-
+            class="danger-btn"
+          >
             Clear History
-
           </button>
 
         </div>
@@ -820,7 +1042,6 @@
 
 
             <tbody id="alertTable">
-
             </tbody>
 
           </table>
@@ -832,11 +1053,15 @@
     </section>
 
 
-    <!-- ========================= -->
-    <!-- SETTINGS -->
-    <!-- ========================= -->
 
-    <section id="page-settings" class="page">
+    <!-- ================================================= -->
+    <!-- SETTINGS -->
+    <!-- ================================================= -->
+
+    <section
+      id="page-settings"
+      class="page"
+    >
 
       <div class="page-title">
 
@@ -844,8 +1069,9 @@
           Settings
         </h2>
 
+
         <p>
-          Configure water-level thresholds and ESP32 communication.
+          Configure system communication and water-level display.
         </p>
 
       </div>
@@ -920,6 +1146,18 @@
           </label>
 
         </div>
+
+
+        <p>
+          <strong>
+            Important:
+          </strong>
+
+          Flood status is determined by the
+          three water sensors. The ultrasonic
+          sensor does not trigger WARNING or
+          CRITICAL status.
+        </p>
 
 
         <h3>
@@ -1003,9 +1241,11 @@
             Save Settings
           </button>
 
+
           <button id="connectBtn">
             Connect ESP32
           </button>
+
 
           <button id="testApi">
             Test REST API
@@ -1016,25 +1256,30 @@
 
         <p
           id="settingsMessage"
-          class="settings-message">
-        </p>
+          class="settings-message"
+        ></p>
 
       </article>
 
     </section>
 
 
-    <!-- ========================= -->
-    <!-- SYSTEM INFORMATION -->
-    <!-- ========================= -->
 
-    <section id="page-system" class="page">
+    <!-- ================================================= -->
+    <!-- SYSTEM INFORMATION -->
+    <!-- ================================================= -->
+
+    <section
+      id="page-system"
+      class="page"
+    >
 
       <div class="page-title">
 
         <h2>
           System Information
         </h2>
+
 
         <p>
           Hardware and software configuration.
@@ -1046,61 +1291,132 @@
       <article class="card info-card">
 
         <div>
-          <span>Device</span>
-          <b>ESP32</b>
+
+          <span>
+            Device
+          </span>
+
+          <b>
+            ESP32
+          </b>
+
         </div>
 
-        <div>
-          <span>Water Sensors</span>
-          <b>3</b>
-        </div>
 
         <div>
-          <span>Ultrasonic Sensor</span>
-          <b>1</b>
+
+          <span>
+            Water Sensors
+          </span>
+
+          <b>
+            3
+          </b>
+
         </div>
 
-        <div>
-          <span>Machine Height</span>
-          <b>7.25 ft / 220.98 cm</b>
-        </div>
 
         <div>
-          <span>OLED Display</span>
-          <b>Connected</b>
+
+          <span>
+            Ultrasonic Sensor
+          </span>
+
+          <b>
+            1
+          </b>
+
         </div>
 
-        <div>
-          <span>Piezo Buzzer</span>
-          <b>Connected</b>
-        </div>
 
         <div>
-          <span>Wi-Fi</span>
+
+          <span>
+            Machine Height
+          </span>
+
+          <b>
+            7.25 ft / 220.98 cm
+          </b>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            OLED Display
+          </span>
+
+          <b>
+            Connected
+          </b>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Piezo Buzzer
+          </span>
+
+          <b>
+            Connected
+          </b>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Wi-Fi
+          </span>
+
           <b id="systemWifi">
             Unknown
           </b>
+
         </div>
 
+
         <div>
-          <span>Website Connection</span>
+
+          <span>
+            Website Connection
+          </span>
+
           <b id="systemConnection">
             Offline
           </b>
+
         </div>
 
+
         <div>
-          <span>Alarm</span>
+
+          <span>
+            Alarm
+          </span>
+
           <b id="systemAlarm">
             Disabled
           </b>
+
         </div>
 
+
         <div>
-          <span>System Status</span>
+
+          <span>
+            System Status
+          </span>
+
           <b id="systemStatus">
             Waiting for data
           </b>
+
         </div>
 
       </article>
@@ -1112,60 +1428,89 @@
 </div>
 
 
+
 <!-- ================================================= -->
-<!-- WEBSITE FLOOD STATUS + ALARM CONTROLLER -->
+<!-- ALARM CONTROLLER -->
 <!-- ================================================= -->
 
 <script>
 
 (function () {
 
-  const MAX_HEIGHT_CM = 220.98;
-
-  const MEDIUM_THRESHOLD = 40;
-  const HIGH_THRESHOLD = 70;
-
   let alarmEnabled = false;
+
   let alarmMuted = false;
+
   let audioContext = null;
+
   let alarmTimer = null;
 
   let lastCalculatedStatus = "SAFE";
 
 
   const enableBtn =
-    document.getElementById("enableAlarmBtn");
+    document.getElementById(
+      "enableAlarmBtn"
+    );
+
 
   const muteBtn =
-    document.getElementById("muteAlarmBtn");
+    document.getElementById(
+      "muteAlarmBtn"
+    );
+
 
   const alarmPanel =
-    document.getElementById("alarmPanel");
+    document.getElementById(
+      "alarmPanel"
+    );
+
 
   const alarmIcon =
-    document.getElementById("alarmIcon");
+    document.getElementById(
+      "alarmIcon"
+    );
+
 
   const alarmTitle =
-    document.getElementById("alarmTitle");
+    document.getElementById(
+      "alarmTitle"
+    );
+
 
   const alarmMessage =
-    document.getElementById("alarmMessage");
+    document.getElementById(
+      "alarmMessage"
+    );
+
 
   const liveAlarm =
-    document.getElementById("liveAlarm");
+    document.getElementById(
+      "liveAlarm"
+    );
+
 
   const liveAlarmStatus =
-    document.getElementById("liveAlarmStatus");
+    document.getElementById(
+      "liveAlarmStatus"
+    );
+
 
   const liveAlarmCondition =
-    document.getElementById("liveAlarmCondition");
+    document.getElementById(
+      "liveAlarmCondition"
+    );
+
 
   const systemAlarm =
-    document.getElementById("systemAlarm");
+    document.getElementById(
+      "systemAlarm"
+    );
+
 
 
   // ============================================
-  // GET SENSOR STATE
+  // CHECK SENSOR
   // ============================================
 
   function isActive(id) {
@@ -1173,268 +1518,227 @@
     const element =
       document.getElementById(id);
 
+
     if (!element) {
+
       return false;
+
     }
 
-    const text =
-      element.textContent
-        .trim()
-        .toUpperCase();
 
     return (
-      text === "ACTIVE" ||
-      text === "ON" ||
-      text === "DETECTED"
+      element.textContent
+        .trim()
+        .toUpperCase()
+        === "ACTIVE"
     );
+
   }
 
 
-  // ============================================
-  // GET WATER LEVEL
-  // ============================================
-
-  function getWaterLevel() {
-
-    const element =
-      document.getElementById("waterLevel");
-
-    if (!element) {
-      return 0;
-    }
-
-    const value =
-      parseFloat(
-        element.textContent
-      );
-
-    if (!Number.isFinite(value)) {
-      return 0;
-    }
-
-    return Math.max(
-      0,
-      Math.min(
-        100,
-        value
-      )
-    );
-  }
-
 
   // ============================================
-  // DETERMINE FLOOD STATUS
+  // DETERMINE STATUS
+  // ============================================
   //
-  // CRITICAL:
-  // HIGH SENSOR OR >= 70%
+  // HIGH   = CRITICAL
+  // MEDIUM = WARNING
+  // LOW    = WARNING
+  // NONE   = SAFE
   //
-  // WARNING:
-  // MEDIUM SENSOR OR >= 40%
-  //
-  // SAFE:
-  // BELOW 40% AND NO MEDIUM/HIGH
+  // ULTRASONIC IS NOT USED.
   // ============================================
 
   function calculateFloodStatus() {
 
+    const low =
+      isActive("lowStatus");
+
+
     const medium =
       isActive("mediumStatus");
+
 
     const high =
       isActive("highStatus");
 
-    const level =
-      getWaterLevel();
 
+    if (high) {
 
-    // ========================================
-    // CRITICAL
-    // ========================================
+      return "CRITICAL";
 
-    if (
-      high ||
-      level >= HIGH_THRESHOLD
-    ) {
-
-      return {
-        status: "CRITICAL",
-
-        reason:
-          high
-            ? "HIGH level sensor detected water."
-            : "Water level reached 70% or higher."
-      };
     }
 
-
-    // ========================================
-    // WARNING
-    // ========================================
 
     if (
       medium ||
-      level >= MEDIUM_THRESHOLD
+      low
     ) {
 
-      return {
-        status: "WARNING",
+      return "WARNING";
 
-        reason:
-          medium
-            ? "MEDIUM level sensor detected water."
-            : "Water level reached 40% or higher."
-      };
     }
 
 
-    // ========================================
-    // SAFE
-    // ========================================
-
-    return {
-      status: "SAFE",
-
-      reason:
-        "Water level is within the safe range."
-    };
+    return "SAFE";
 
   }
+
 
 
   // ============================================
   // ENABLE ALARM
   // ============================================
 
-  enableBtn.addEventListener(
-    "click",
-    async function () {
+  if (enableBtn) {
 
-      try {
+    enableBtn.addEventListener(
+      "click",
+      async function () {
 
-        if (!audioContext) {
+        try {
 
-          audioContext =
-            new (
-              window.AudioContext ||
-              window.webkitAudioContext
-            )();
+          if (!audioContext) {
+
+            audioContext =
+              new (
+                window.AudioContext ||
+                window.webkitAudioContext
+              )();
+
+          }
+
+
+          if (
+            audioContext.state ===
+            "suspended"
+          ) {
+
+            await audioContext.resume();
+
+          }
+
+
+          alarmEnabled = true;
+
+          alarmMuted = false;
+
+
+          enableBtn.textContent =
+            "🔔 ALARM ENABLED";
+
+
+          muteBtn.disabled =
+            false;
+
+
+          if (systemAlarm) {
+
+            systemAlarm.textContent =
+              "Enabled";
+
+          }
+
+
+          if (liveAlarmStatus) {
+
+            liveAlarmStatus.textContent =
+              "ENABLED";
+
+          }
+
+
+          playTestBeep();
+
+
+          updateAlarmDisplay(
+            lastCalculatedStatus
+          );
+
         }
 
+        catch (error) {
 
-        if (
-          audioContext.state ===
-          "suspended"
-        ) {
+          console.error(
+            "Alarm initialization failed:",
+            error
+          );
 
-          await audioContext.resume();
+
+          alarmMessage.textContent =
+            "Browser audio could not be enabled.";
+
         }
-
-
-        alarmEnabled = true;
-        alarmMuted = false;
-
-
-        enableBtn.textContent =
-          "🔔 ALARM ENABLED";
-
-
-        muteBtn.disabled = false;
-
-
-        if (systemAlarm) {
-
-          systemAlarm.textContent =
-            "Enabled";
-        }
-
-
-        if (liveAlarmStatus) {
-
-          liveAlarmStatus.textContent =
-            "ENABLED";
-        }
-
-
-        /*
-          Small test beep
-        */
-
-        playTestBeep();
-
-
-        updateAlarmDisplay(
-          lastCalculatedStatus
-        );
 
       }
+    );
 
-      catch (error) {
+  }
 
-        console.error(
-          "Alarm initialization failed:",
-          error
-        );
-
-        alarmMessage.textContent =
-          "Browser audio could not be enabled.";
-      }
-
-    }
-  );
 
 
   // ============================================
   // MUTE / UNMUTE
   // ============================================
 
-  muteBtn.addEventListener(
-    "click",
-    function () {
+  if (muteBtn) {
 
-      alarmMuted =
-        !alarmMuted;
+    muteBtn.addEventListener(
+      "click",
+      function () {
 
-
-      if (alarmMuted) {
-
-        muteBtn.textContent =
-          "🔊 UNMUTE";
+        alarmMuted =
+          !alarmMuted;
 
 
-        stopAlarmSound();
+        if (alarmMuted) {
+
+          muteBtn.textContent =
+            "🔊 UNMUTE";
 
 
-        alarmPanel.classList.remove(
-          "alarm-active"
-        );
+          stopAlarmSound();
 
 
-        alarmMessage.textContent =
-          "Alarm muted. Flood monitoring remains active.";
+          if (alarmPanel) {
+
+            alarmPanel.classList.remove(
+              "alarm-active"
+            );
+
+          }
 
 
-        if (liveAlarm) {
+          alarmMessage.textContent =
+            "Alarm muted. Flood monitoring remains active.";
 
-          liveAlarm.textContent =
-            "MUTED";
+
+          if (liveAlarm) {
+
+            liveAlarm.textContent =
+              "MUTED";
+
+          }
+
+        }
+
+        else {
+
+          muteBtn.textContent =
+            "🔇 MUTE";
+
+
+          updateAlarmDisplay(
+            lastCalculatedStatus
+          );
+
         }
 
       }
+    );
 
-      else {
+  }
 
-        muteBtn.textContent =
-          "🔇 MUTE";
-
-
-        updateAlarmDisplay(
-          lastCalculatedStatus
-        );
-
-      }
-
-    }
-  );
 
 
   // ============================================
@@ -1444,12 +1748,15 @@
   function playTestBeep() {
 
     if (!audioContext) {
+
       return;
+
     }
 
 
     const oscillator =
       audioContext.createOscillator();
+
 
     const gain =
       audioContext.createGain();
@@ -1464,6 +1771,7 @@
 
     oscillator.frequency.value =
       700;
+
 
     oscillator.type =
       "square";
@@ -1485,214 +1793,21 @@
   }
 
 
+
   // ============================================
-  // UPDATE FLOOD STATUS
+  // UPDATE ALARM DISPLAY
   // ============================================
 
-  function updateFloodStatus() {
-
-    const result =
-      calculateFloodStatus();
-
-    const status =
-      result.status;
-
+  function updateAlarmDisplay(status) {
 
     lastCalculatedStatus =
       status;
 
 
-    const statusCard =
-      document.getElementById(
-        "statusCard"
-      );
-
-    const statusTitle =
-      document.getElementById(
-        "statusTitle"
-      );
-
-    const statusDescription =
-      document.getElementById(
-        "statusDescription"
-      );
-
-    const statusIcon =
-      document.getElementById(
-        "statusIcon"
-      );
-
-    const liveStatus =
-      document.getElementById(
-        "liveStatus"
-      );
-
-    const liveStatusSmall =
-      document.getElementById(
-        "liveStatusSmall"
-      );
-
-    const waterDetailStatus =
-      document.getElementById(
-        "waterDetailStatus"
-      );
-
-
-    // ========================================
-    // STATUS CARD
-    // ========================================
-
-    if (statusCard) {
-
-      statusCard.classList.remove(
-        "safe",
-        "warning",
-        "critical"
-      );
-
-
-      statusCard.classList.add(
-        status.toLowerCase()
-      );
-
-    }
-
-
-    // ========================================
-    // TITLE
-    // ========================================
-
-    if (statusTitle) {
-
-      statusTitle.textContent =
-        status;
-    }
-
-
-    // ========================================
-    // ICON
-    // ========================================
-
-    if (statusIcon) {
-
-      if (status === "CRITICAL") {
-
-        statusIcon.textContent =
-          "🚨";
-
-      }
-
-      else if (status === "WARNING") {
-
-        statusIcon.textContent =
-          "⚠";
-
-      }
-
-      else {
-
-        statusIcon.textContent =
-          "✓";
-      }
-
-    }
-
-
-    // ========================================
-    // DESCRIPTION
-    // ========================================
-
-    if (statusDescription) {
-
-      if (status === "CRITICAL") {
-
-        statusDescription.textContent =
-          "CRITICAL FLOOD CONDITION: " +
-          result.reason;
-
-      }
-
-      else if (status === "WARNING") {
-
-        statusDescription.textContent =
-          "WARNING: " +
-          result.reason;
-
-      }
-
-      else {
-
-        statusDescription.textContent =
-          result.reason;
-      }
-
-    }
-
-
-    // ========================================
-    // LIVE STATUS
-    // ========================================
-
-    if (liveStatus) {
-
-      liveStatus.textContent =
-        status;
-    }
-
-
-    if (liveStatusSmall) {
-
-      if (status === "CRITICAL") {
-
-        liveStatusSmall.textContent =
-          "Critical flood condition";
-
-      }
-
-      else if (status === "WARNING") {
-
-        liveStatusSmall.textContent =
-          "Warning flood condition";
-
-      }
-
-      else {
-
-        liveStatusSmall.textContent =
-          "Normal condition";
-      }
-
-    }
-
-
-    // ========================================
-    // WATER PAGE STATUS
-    // ========================================
-
-    if (waterDetailStatus) {
-
-      waterDetailStatus.textContent =
-        status;
-    }
-
-
-    // ========================================
-    // UPDATE ALARM
-    // ========================================
-
-    updateAlarmDisplay(status);
-
-  }
-
-
-  // ============================================
-  // ALARM DISPLAY
-  // ============================================
-
-  function updateAlarmDisplay(status) {
-
     if (!alarmPanel) {
+
       return;
+
     }
 
 
@@ -1724,8 +1839,7 @@
 
 
       alarmMessage.textContent =
-        "CRITICAL condition detected. " +
-        "Check the water level immediately.";
+        "HIGH water sensor activated. Immediate attention is required.";
 
 
       if (
@@ -1749,6 +1863,7 @@
           alarmEnabled && !alarmMuted
             ? "ACTIVE"
             : "MUTED";
+
       }
 
     }
@@ -1774,8 +1889,7 @@
 
 
       alarmMessage.textContent =
-        "WARNING condition detected. " +
-        "Water level requires monitoring.";
+        "LOW or MEDIUM water sensor activated. Monitor the situation.";
 
 
       if (
@@ -1799,6 +1913,7 @@
           alarmEnabled && !alarmMuted
             ? "ACTIVE"
             : "MUTED";
+
       }
 
     }
@@ -1829,8 +1944,6 @@
           : "Alarm is ready. Enable the alarm to receive audible warnings.";
 
 
-      // ALWAYS STOP ALARM WHEN SAFE
-
       stopAlarmSound();
 
 
@@ -1838,6 +1951,7 @@
 
         liveAlarm.textContent =
           "OFF";
+
       }
 
     }
@@ -1847,13 +1961,15 @@
 
       liveAlarmCondition.textContent =
         status;
+
     }
 
   }
 
 
+
   // ============================================
-  // START ALARM SOUND
+  // START ALARM
   // ============================================
 
   function startAlarmSound() {
@@ -1863,17 +1979,16 @@
       alarmMuted ||
       !audioContext
     ) {
+
       return;
+
     }
 
 
-    /*
-      Don't create another timer
-      if one is already running.
-    */
-
     if (alarmTimer) {
+
       return;
+
     }
 
 
@@ -1887,11 +2002,13 @@
       ) {
 
         return;
+
       }
 
 
       const oscillator =
         audioContext.createOscillator();
+
 
       const gain =
         audioContext.createGain();
@@ -1903,11 +2020,6 @@
         audioContext.destination
       );
 
-
-      // ======================================
-      // CRITICAL = HIGHER PITCH
-      // WARNING = LOWER PITCH
-      // ======================================
 
       if (
         lastCalculatedStatus ===
@@ -1923,6 +2035,7 @@
 
         oscillator.frequency.value =
           600;
+
       }
 
 
@@ -1946,17 +2059,12 @@
     }
 
 
-    // Play immediately
-
     playAlarmBeep();
 
 
-    // ========================================
-    // REPEAT
-    // ========================================
-
     const interval =
-      lastCalculatedStatus === "CRITICAL"
+      lastCalculatedStatus ===
+      "CRITICAL"
         ? 700
         : 1500;
 
@@ -1970,8 +2078,9 @@
   }
 
 
+
   // ============================================
-  // STOP ALARM SOUND
+  // STOP ALARM
   // ============================================
 
   function stopAlarmSound() {
@@ -1983,17 +2092,33 @@
       );
 
       alarmTimer = null;
+
     }
 
   }
 
 
+
   // ============================================
-  // CHECK STATUS EVERY 300ms
+  // STATUS CHECK
+  // ============================================
+  //
+  // Checks ONLY the three water sensors.
+  // Ultrasonic is never read here.
   // ============================================
 
   setInterval(
-    updateFloodStatus,
+    function () {
+
+      const status =
+        calculateFloodStatus();
+
+
+      updateAlarmDisplay(
+        status
+      );
+
+    },
     300
   );
 
@@ -2003,7 +2128,17 @@
   // ============================================
 
   setTimeout(
-    updateFloodStatus,
+    function () {
+
+      const status =
+        calculateFloodStatus();
+
+
+      updateAlarmDisplay(
+        status
+      );
+
+    },
     500
   );
 
@@ -2012,8 +2147,14 @@
 </script>
 
 
-<!-- ORIGINAL SCRIPT -->
+
+<!-- ================================================= -->
+<!-- MAIN WEBSITE SCRIPT -->
+<!-- ================================================= -->
+
 <script src="script.js"></script>
+
 
 </body>
 </html>
+```
