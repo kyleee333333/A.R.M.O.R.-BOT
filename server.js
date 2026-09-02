@@ -11,175 +11,282 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '32kb' }));
 
-// Serve your website files
+// ==========================================
+// SERVE WEBSITE
+// ==========================================
+
 app.use(express.static(__dirname));
 
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+
+// ==========================================
+// FLOOD MONITORING DATA
+// ==========================================
+
 let latest = null;
+
 const clients = new Set();
 
+
+// ==========================================
+// CLEAN ESP32 DATA
+// ==========================================
+
 function clean(data) {
-  if (!data || typeof data !== 'object') return null;
 
-  const d = { ...data };
+    if (!data || typeof data !== 'object') {
+        return null;
+    }
 
-  if (
-    typeof d.distance !== 'number' ||
-    !Number.isFinite(d.distance) ||
-    d.distance < 0
-  ) {
-    d.distance = null;
-  }
+    const d = { ...data };
 
-  if (
-    typeof d.waterLevel !== 'number' ||
-    !Number.isFinite(d.waterLevel)
-  ) {
-    d.waterLevel = null;
-  }
+    // Distance
+    if (
+        typeof d.distance !== 'number' ||
+        !Number.isFinite(d.distance) ||
+        d.distance < 0
+    ) {
+        d.distance = null;
+    }
 
-  d.lowSensor =
-    typeof d.lowSensor === 'boolean'
-      ? d.lowSensor
-      : false;
+    // Water level
+    if (
+        typeof d.waterLevel !== 'number' ||
+        !Number.isFinite(d.waterLevel)
+    ) {
+        d.waterLevel = null;
+    }
 
-  d.mediumSensor =
-    typeof d.mediumSensor === 'boolean'
-      ? d.mediumSensor
-      : false;
+    // Sensors
+    d.lowSensor =
+        typeof d.lowSensor === 'boolean'
+            ? d.lowSensor
+            : false;
 
-  d.highSensor =
-    typeof d.highSensor === 'boolean'
-      ? d.highSensor
-      : false;
+    d.mediumSensor =
+        typeof d.mediumSensor === 'boolean'
+            ? d.mediumSensor
+            : false;
 
-  d.status =
-    ['SAFE', 'WARNING', 'CRITICAL'].includes(d.status)
-      ? d.status
-      : d.highSensor
-        ? 'CRITICAL'
-        : d.mediumSensor
-          ? 'WARNING'
-          : 'SAFE';
+    d.highSensor =
+        typeof d.highSensor === 'boolean'
+            ? d.highSensor
+            : false;
 
-  d.timestamp =
-    d.timestamp || new Date().toISOString();
+    // Status
+    if (
+        d.status !== 'SAFE' &&
+        d.status !== 'WARNING' &&
+        d.status !== 'CRITICAL'
+    ) {
 
-  return d;
+        if (d.highSensor) {
+            d.status = 'CRITICAL';
+
+        } else if (d.mediumSensor) {
+            d.status = 'WARNING';
+
+        } else {
+            d.status = 'SAFE';
+        }
+    }
+
+    // Timestamp
+    d.timestamp =
+        d.timestamp ||
+        new Date().toISOString();
+
+    return d;
 }
+
+
+// ==========================================
+// SEND DATA TO ALL CONNECTED WEBSITES
+// ==========================================
 
 function broadcast(data) {
-  const message = JSON.stringify(data);
 
-  for (const ws of clients) {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(message);
+    const message = JSON.stringify(data);
+
+    for (const ws of clients) {
+
+        if (ws.readyState === WebSocket.OPEN) {
+
+            ws.send(message);
+        }
     }
-  }
 }
 
 
 // ==========================================
-// WEBSITE
+// SERVER STATUS
 // ==========================================
 
-// This fixes "Cannot GET /"
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-
-// ==========================================
-// API
-// ==========================================
-
-// Health check
 app.get('/api/health', (req, res) => {
-  res.json({
-    ok: true,
-    service: 'flood-monitoring-server',
-    clients: clients.size,
-    hasData: !!latest
-  });
-});
 
+    res.json({
 
-// Get latest ESP32 data
-app.get('/api/latest', (req, res) => {
-  res.json(
-    latest || {
-      status: 'NO_DATA'
-    }
-  );
-});
+        ok: true,
 
+        service: 'flood-monitoring-server',
 
-// Receive telemetry from ESP32
-app.post('/api/telemetry', (req, res) => {
-  const data = clean(req.body);
+        clients: clients.size,
 
-  if (!data) {
-    return res.status(400).json({
-      ok: false,
-      error: 'Invalid telemetry'
+        hasData: latest !== null
+
     });
-  }
 
-  latest = data;
-
-  broadcast(data);
-
-  res.json({
-    ok: true,
-    receivedAt: new Date().toISOString()
-  });
 });
+
+
+// ==========================================
+// GET LATEST ESP32 DATA
+// ==========================================
+
+app.get('/api/latest', (req, res) => {
+
+    if (latest) {
+
+        res.json(latest);
+
+    } else {
+
+        res.json({
+
+            status: 'NO_DATA',
+
+            lowSensor: false,
+
+            mediumSensor: false,
+
+            highSensor: false,
+
+            distance: null,
+
+            waterLevel: null
+
+        });
+
+    }
+
+});
+
+
+// ==========================================
+// RECEIVE ESP32 TELEMETRY
+// ==========================================
+
+app.post('/api/telemetry', (req, res) => {
+
+    console.log('');
+    console.log('================================');
+    console.log('ESP32 TELEMETRY RECEIVED');
+    console.log('================================');
+
+    const data = clean(req.body);
+
+    if (!data) {
+
+        console.log('Invalid telemetry');
+
+        return res.status(400).json({
+
+            ok: false,
+
+            error: 'Invalid telemetry'
+
+        });
+
+    }
+
+    // Save latest data
+    latest = data;
+
+    console.log(JSON.stringify(data, null, 2));
+
+    // Send data to website
+    broadcast(data);
+
+    res.json({
+
+        ok: true,
+
+        receivedAt: new Date().toISOString()
+
+    });
+
+});
+
+
+// ==========================================
+// CREATE HTTP SERVER
+// ==========================================
+
+const server = http.createServer(app);
 
 
 // ==========================================
 // WEBSOCKET SERVER
 // ==========================================
 
-const server = http.createServer(app);
-
 const wss = new WebSocket.Server({
-  server
+
+    server
+
 });
 
-wss.on('connection', ws => {
-  clients.add(ws);
 
-  // Send latest data immediately
-  ws.send(
-    JSON.stringify(
-      latest || {
-        status: 'NO_DATA'
-      }
-    )
-  );
+wss.on('connection', (ws) => {
 
-  ws.on('close', () => {
-    clients.delete(ws);
-  });
+    console.log('Website connected');
 
-  ws.on('error', () => {
-    clients.delete(ws);
-  });
+    clients.add(ws);
 
-  // Allow WebSocket clients to send telemetry
-  ws.on('message', raw => {
-    try {
-      const parsed = JSON.parse(raw.toString());
 
-      const data = clean(parsed);
+    // Immediately send latest data
+    if (latest) {
 
-      if (data) {
-        latest = data;
-        broadcast(data);
-      }
-    } catch (error) {
-      console.log('Invalid WebSocket message');
+        ws.send(JSON.stringify(latest));
+
+    } else {
+
+        ws.send(JSON.stringify({
+
+            status: 'NO_DATA',
+
+            lowSensor: false,
+
+            mediumSensor: false,
+
+            highSensor: false,
+
+            distance: null,
+
+            waterLevel: null
+
+        }));
+
     }
-  });
+
+
+    ws.on('close', () => {
+
+        console.log('Website disconnected');
+
+        clients.delete(ws);
+
+    });
+
+
+    ws.on('error', () => {
+
+        clients.delete(ws);
+
+    });
+
 });
 
 
@@ -187,20 +294,22 @@ wss.on('connection', ws => {
 // START SERVER
 // ==========================================
 
-server.listen(PORT, () => {
-  console.log(
-    `Flood monitoring server running on port ${PORT}`
-  );
+server.listen(PORT, '0.0.0.0', () => {
 
-  console.log(
-    `Website: http://localhost:${PORT}`
-  );
+    console.log('');
+    console.log('==========================================');
+    console.log(' FLOOD MONITORING SERVER');
+    console.log('==========================================');
 
-  console.log(
-    `Health: http://localhost:${PORT}/api/health`
-  );
+    console.log(`Server running on port ${PORT}`);
 
-  console.log(
-    `Latest data: http://localhost:${PORT}/api/latest`
-  );
+    console.log(`Website: http://localhost:${PORT}`);
+
+    console.log(`Health:  http://localhost:${PORT}/api/health`);
+
+    console.log(`Latest:  http://localhost:${PORT}/api/latest`);
+
+    console.log('==========================================');
+    console.log('');
+
 });
