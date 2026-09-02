@@ -1,4081 +1,1817 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>A.R.M.O.R. BOT - Flood Monitoring System</title>
+  <title>A.R.M.O.R. BOT</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="style.css">
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f3f6fa;
-            color: #1f2937;
-        }
-
-        .app {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* =========================
-           SIDEBAR
-        ========================= */
-
-        .sidebar {
-            width: 250px;
-            background: #111827;
-            color: white;
-            padding: 20px 15px;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            overflow-y: auto;
-            z-index: 1000;
-        }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .logo h1 {
-            font-size: 25px;
-            color: #60a5fa;
-        }
-
-        .logo p {
-            font-size: 12px;
-            color: #9ca3af;
-            margin-top: 5px;
-        }
-
-        .nav button {
-            width: 100%;
-            padding: 13px;
-            margin: 5px 0;
-            border: none;
-            border-radius: 8px;
-            background: transparent;
-            color: #d1d5db;
-            text-align: left;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .nav button:hover,
-        .nav button.active {
-            background: #2563eb;
-            color: white;
-        }
-
-        /* =========================
-           MAIN
-        ========================= */
-
-        .main {
-            margin-left: 250px;
-            width: calc(100% - 250px);
-            padding: 25px;
-        }
-
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            background: white;
-            padding: 18px 22px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,.05);
-        }
-
-        .topbar h2 {
-            font-size: 22px;
-        }
-
-        .connection {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .connection-dot {
-            width: 11px;
-            height: 11px;
-            border-radius: 50%;
-            background: #ef4444;
-        }
-
-        .connection-dot.online {
-            background: #22c55e;
-        }
-
-        /* =========================
-           PAGE
-        ========================= */
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        .page-title {
-            margin-bottom: 20px;
-        }
-
-        .page-title h2 {
-            font-size: 24px;
-        }
-
-        .page-title p {
-            color: #6b7280;
-            margin-top: 5px;
-        }
-
-        /* =========================
-           STATUS
-        ========================= */
-
-        .status-card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 20px;
-            text-align: center;
-            border-left: 7px solid #22c55e;
-            box-shadow: 0 3px 12px rgba(0,0,0,.06);
-        }
-
-        .status-card.warning {
-            border-left-color: #f59e0b;
-        }
-
-        .status-card.critical {
-            border-left-color: #ef4444;
-        }
-
-        .status-icon {
-            font-size: 55px;
-            margin-bottom: 10px;
-        }
-
-        .status-title {
-            font-size: 32px;
-            font-weight: bold;
-        }
-
-        .status-description {
-            color: #6b7280;
-            margin-top: 8px;
-        }
-
-        /* =========================
-           GRID
-        ========================= */
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 18px;
-            margin-bottom: 20px;
-        }
-
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 18px;
-            margin-bottom: 20px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 13px;
-            padding: 20px;
-            box-shadow: 0 3px 12px rgba(0,0,0,.05);
-        }
-
-        .card h3 {
-            margin-bottom: 15px;
-            font-size: 17px;
-        }
-
-        .sensor-card {
-            border-top: 5px solid #22c55e;
-        }
-
-        .sensor-card.warning {
-            border-top-color: #f59e0b;
-        }
-
-        .sensor-card.critical {
-            border-top-color: #ef4444;
-        }
-
-        .sensor-status {
-            font-size: 23px;
-            font-weight: bold;
-            margin-top: 8px;
-        }
-
-        .sensor-sub {
-            font-size: 13px;
-            color: #6b7280;
-            margin-top: 5px;
-        }
-
-        /* =========================
-           WATER LEVEL
-        ========================= */
-
-        .water-display {
-            text-align: center;
-        }
-
-        .water-percent {
-            font-size: 48px;
-            font-weight: bold;
-            color: #2563eb;
-        }
-
-        .water-bar {
-            width: 100%;
-            height: 28px;
-            background: #e5e7eb;
-            border-radius: 20px;
-            overflow: hidden;
-            margin: 18px 0;
-        }
-
-        .water-bar-fill {
-            height: 100%;
-            width: 0%;
-            background: #22c55e;
-            transition: width .4s ease;
-        }
-
-        .water-bar-fill.warning {
-            background: #f59e0b;
-        }
-
-        .water-bar-fill.critical {
-            background: #ef4444;
-        }
-
-        .water-info {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 15px;
-        }
-
-        .water-info div {
-            text-align: center;
-        }
-
-        .water-info strong {
-            display: block;
-            font-size: 18px;
-        }
-
-        .water-info span {
-            color: #6b7280;
-            font-size: 12px;
-        }
-
-        /* =========================
-           ALARM
-        ========================= */
-
-        .alarm-panel {
-            display: none;
-            background: #fff7ed;
-            border: 2px solid #f97316;
-            border-radius: 14px;
-            padding: 20px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .alarm-panel.critical {
-            background: #fef2f2;
-            border-color: #ef4444;
-            animation: alarmFlash 1s infinite;
-        }
-
-        .alarm-icon {
-            font-size: 45px;
-        }
-
-        .alarm-title {
-            font-size: 25px;
-            font-weight: bold;
-            margin: 8px 0;
-        }
-
-        .alarm-message {
-            margin-bottom: 15px;
-        }
-
-        .alarm-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .alarm-buttons button {
-            border: none;
-            border-radius: 8px;
-            padding: 11px 18px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .enable-alarm {
-            background: #2563eb;
-            color: white;
-        }
-
-        .mute-alarm {
-            background: #374151;
-            color: white;
-        }
-
-        @keyframes alarmFlash {
-            0%, 100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: .65;
-            }
-        }
-
-        /* =========================
-           CHART
-        ========================= */
-
-        .chart-container {
-            height: 350px;
-            position: relative;
-        }
-
-        /* =========================
-           LIVE
-        ========================= */
-
-        .live-value {
-            font-size: 35px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .live-status {
-            font-size: 25px;
-            font-weight: bold;
-        }
-
-        .live-sensors {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .live-sensor {
-            padding: 15px;
-            background: #f3f4f6;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        /* =========================
-           TABLE
-        ========================= */
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-            font-size: 13px;
-        }
-
-        th {
-            background: #f9fafb;
-        }
-
-        /* =========================
-           FORM
-        ========================= */
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: bold;
-            font-size: 13px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 11px;
-            border: 1px solid #d1d5db;
-            border-radius: 7px;
-        }
-
-        .btn {
-            padding: 11px 18px;
-            border: none;
-            border-radius: 7px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-right: 5px;
-            margin-bottom: 5px;
-        }
-
-        .btn-primary {
-            background: #2563eb;
-            color: white;
-        }
-
-        .btn-success {
-            background: #16a34a;
-            color: white;
-        }
-
-        .btn-danger {
-            background: #dc2626;
-            color: white;
-        }
-
-        .btn-gray {
-            background: #6b7280;
-            color: white;
-        }
-
-        /* =========================
-           INFO
-        ========================= */
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .info-row span:first-child {
-            color: #6b7280;
-        }
-
-        /* =========================
-           RESPONSIVE
-        ========================= */
-
-        @media (max-width: 900px) {
-
-            .sidebar {
-                width: 210px;
-            }
-
-            .main {
-                margin-left: 210px;
-                width: calc(100% - 210px);
-            }
-
-            .grid {
-                grid-template-columns: 1fr;
-            }
-
-            .grid-2 {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 650px) {
-
-            .sidebar {
-                position: relative;
-                width: 100%;
-                height: auto;
-            }
-
-            .main {
-                margin-left: 0;
-                width: 100%;
-            }
-
-            .app {
-                display: block;
-            }
-
-            .topbar {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .live-sensors {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
 <div class="app">
 
-    <!-- =========================
-         SIDEBAR
-    ========================== -->
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
 
-    <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">🌊</div>
 
-        <div class="logo">
-            <h1>🛡️ A.R.M.O.R.</h1>
-            <p>Flood Monitoring System</p>
+      <div>
+        <strong>FLOOD MONITOR</strong>
+        <small>ESP32 SYSTEM</small>
+      </div>
+    </div>
+
+    <nav>
+
+      <button class="nav-btn active" data-page="dashboard">
+        ▦ <span>Dashboard</span>
+      </button>
+
+      <button class="nav-btn" data-page="live">
+        ◉ <span>Live Monitoring</span>
+      </button>
+
+      <button class="nav-btn" data-page="water">
+        ◒ <span>Water Level</span>
+      </button>
+
+      <button class="nav-btn" data-page="graphs">
+        ⌁ <span>Graphs</span>
+      </button>
+
+      <button class="nav-btn" data-page="alerts">
+        ⚠ <span>Alert History</span>
+      </button>
+
+      <button class="nav-btn" data-page="settings">
+        ⚙ <span>Settings</span>
+      </button>
+
+      <button class="nav-btn" data-page="system">
+        ⓘ <span>System Information</span>
+      </button>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <button id="demoBtn" class="demo-btn">
+        ▶ Demo Mode
+      </button>
+    </div>
+
+  </aside>
+
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOP BAR -->
+    <header class="topbar">
+
+      <button id="menuBtn" class="menu-btn">
+        ☰
+      </button>
+
+      <div>
+        <h1>A.R.M.O.R. BOT</h1>
+        <p>ESP32-Based Real-Time Water Level Monitoring</p>
+      </div>
+
+      <div class="top-status">
+
+        <span id="connectionDot" class="dot offline"></span>
+
+        <div>
+          <b id="connectionText">ESP32 OFFLINE</b>
+          <small id="lastData">No data received</small>
         </div>
 
-        <div class="nav">
+        <span id="clock"></span>
 
-            <button class="active" onclick="showPage('dashboard', this)">
-                📊 Dashboard
-            </button>
+      </div>
 
-            <button onclick="showPage('live', this)">
-                📡 Live Monitoring
-            </button>
-
-            <button onclick="showPage('water', this)">
-                💧 Water Level
-            </button>
-
-            <button onclick="showPage('graphs', this)">
-                📈 Graphs
-            </button>
-
-            <button onclick="showPage('history', this)">
-                🚨 Alert History
-            </button>
-
-            <button onclick="showPage('settings', this)">
-                ⚙️ Settings
-            </button>
-
-            <button onclick="showPage('system', this)">
-                ℹ️ System Information
-            </button>
-
-        </div>
-
-    </aside>
+    </header>
 
 
-    <!-- =========================
-         MAIN
-    ========================== -->
+    <!-- ========================= -->
+    <!-- DASHBOARD -->
+    <!-- ========================= -->
 
-    <main class="main">
+    <section id="page-dashboard" class="page active">
 
-        <!-- TOP BAR -->
+      <!-- FLOOD STATUS -->
 
-        <div class="topbar">
+      <div class="status-card safe" id="statusCard">
 
-            <h2>A.R.M.O.R. BOT</h2>
+        <div>
 
-            <div class="connection">
+          <span class="eyebrow">
+            CURRENT FLOOD STATUS
+          </span>
 
-                <span
-                    id="connectionDot"
-                    class="connection-dot">
-                </span>
+          <h2 id="statusTitle">
+            SAFE
+          </h2>
 
-                <span id="connectionText">
-                    ESP32 OFFLINE
-                </span>
-
-            </div>
+          <p id="statusDescription">
+            Water level is currently within the safe range.
+          </p>
 
         </div>
 
+        <div class="status-icon" id="statusIcon">
+          ✓
+        </div>
 
-        <!-- =========================
-             DASHBOARD
-        ========================== -->
-
-        <section id="dashboard" class="page active">
-
-            <div class="page-title">
-
-                <h2>Flood Monitoring Dashboard</h2>
-
-                <p>
-                    Real-time monitoring using water sensors
-                    and ultrasonic distance measurement.
-                </p>
-
-            </div>
+      </div>
 
 
-            <!-- FLOOD STATUS -->
+      <!-- ========================= -->
+      <!-- ALARM PANEL -->
+      <!-- ========================= -->
+
+      <article class="card alarm-panel" id="alarmPanel">
+
+        <div class="alarm-left">
+
+          <div class="alarm-icon" id="alarmIcon">
+            🔕
+          </div>
+
+          <div>
+
+            <strong id="alarmTitle">
+              FLOOD ALARM
+            </strong>
+
+            <p id="alarmMessage">
+              Alarm is ready. Enable the alarm to receive audible warnings.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="alarm-actions">
+
+          <button
+            id="enableAlarmBtn"
+            type="button">
+            🔔 ENABLE ALARM
+          </button>
+
+          <button
+            id="muteAlarmBtn"
+            type="button"
+            disabled>
+            🔇 MUTE
+          </button>
+
+        </div>
+
+      </article>
+
+
+      <!-- SENSOR CARDS -->
+
+      <div class="grid sensors">
+
+        <article
+          class="card sensor-card"
+          data-sensor="low">
+
+          <div class="card-head">
+
+            <span>
+              LOW LEVEL SENSOR
+            </span>
+
+            <span class="sensor-light"></span>
+
+          </div>
+
+          <strong id="lowStatus">
+            INACTIVE
+          </strong>
+
+          <small>
+            Sensor 1 · Low level detection
+          </small>
+
+        </article>
+
+
+        <article
+          class="card sensor-card"
+          data-sensor="medium">
+
+          <div class="card-head">
+
+            <span>
+              MEDIUM LEVEL SENSOR
+            </span>
+
+            <span class="sensor-light"></span>
+
+          </div>
+
+          <strong id="mediumStatus">
+            INACTIVE
+          </strong>
+
+          <small>
+            Sensor 2 · Warning level
+          </small>
+
+        </article>
+
+
+        <article
+          class="card sensor-card"
+          data-sensor="high">
+
+          <div class="card-head">
+
+            <span>
+              HIGH LEVEL SENSOR
+            </span>
+
+            <span class="sensor-light"></span>
+
+          </div>
+
+          <strong id="highStatus">
+            INACTIVE
+          </strong>
+
+          <small>
+            Sensor 3 · Critical level
+          </small>
+
+        </article>
+
+      </div>
+
+
+      <!-- WATER LEVEL + CHART -->
+
+      <div class="grid main-grid">
+
+        <article class="card gauge-card">
+
+          <div class="card-head">
+
+            <h3>
+              Water Level
+            </h3>
+
+            <span id="levelSource">
+              Ultrasonic
+            </span>
+
+          </div>
+
+
+          <div class="gauge">
 
             <div
-                id="statusCard"
-                class="status-card">
+              class="gauge-fill"
+              id="gaugeFill">
+            </div>
 
-                <div
-                    id="statusIcon"
-                    class="status-icon">
-                    🟢
-                </div>
+            <div class="gauge-label">
 
-                <div
-                    id="statusTitle"
-                    class="status-title">
-                    SAFE
-                </div>
+              <strong id="waterLevel">
+                0%
+              </strong>
 
-                <div
-                    id="statusDescription"
-                    class="status-description">
-                    Water level is currently safe.
-                </div>
+              <span>
+                Water Level
+              </span>
 
             </div>
 
+          </div>
 
-            <!-- ALARM -->
 
-            <div
-                id="alarmPanel"
-                class="alarm-panel">
+          <div class="metric-row">
 
-                <div
-                    id="alarmIcon"
-                    class="alarm-icon">
-                    🔊
-                </div>
+            <div>
 
-                <div
-                    id="alarmTitle"
-                    class="alarm-title">
-                    FLOOD ALARM
-                </div>
+              <small>
+                Distance
+              </small>
 
-                <div
-                    id="alarmMessage"
-                    class="alarm-message">
-                    Alarm system ready.
-                </div>
-
-                <div class="alarm-buttons">
-
-                    <button
-                        id="enableAlarmBtn"
-                        class="enable-alarm">
-
-                        🔊 ENABLE ALARM
-
-                    </button>
-
-                    <button
-                        id="muteAlarmBtn"
-                        class="mute-alarm">
-
-                        🔇 MUTE ALARM
-
-                    </button>
-
-                </div>
+              <b id="distance">
+                N/A
+              </b>
 
             </div>
 
+            <div>
 
-            <!-- SENSORS -->
+              <small>
+                Max Height
+              </small>
 
-            <div class="grid">
-
-                <div
-                    id="lowCard"
-                    class="card sensor-card">
-
-                    <h3>🟢 LOW SENSOR</h3>
-
-                    <div
-                        id="lowStatus"
-                        class="sensor-status">
-
-                        OFF
-
-                    </div>
-
-                    <div class="sensor-sub">
-                        Low water detection
-                    </div>
-
-                </div>
-
-
-                <div
-                    id="mediumCard"
-                    class="card sensor-card">
-
-                    <h3>🟡 MEDIUM SENSOR</h3>
-
-                    <div
-                        id="mediumStatus"
-                        class="sensor-status">
-
-                        OFF
-
-                    </div>
-
-                    <div class="sensor-sub">
-                        Warning water detection
-                    </div>
-
-                </div>
-
-
-                <div
-                    id="highCard"
-                    class="card sensor-card">
-
-                    <h3>🔴 HIGH SENSOR</h3>
-
-                    <div
-                        id="highStatus"
-                        class="sensor-status">
-
-                        OFF
-
-                    </div>
-
-                    <div class="sensor-sub">
-                        Critical water detection
-                    </div>
-
-                </div>
+              <b id="maxHeightDisplay">
+                220.98 cm
+              </b>
 
             </div>
 
+          </div>
 
-            <!-- WATER LEVEL + GRAPH -->
+        </article>
 
-            <div class="grid-2">
 
-                <div class="card">
+        <article class="card chart-card">
 
-                    <h3>💧 Current Water Level</h3>
+          <div class="card-head">
 
-                    <div class="water-display">
+            <h3>
+              Real-Time Water Level
+            </h3>
 
-                        <div
-                            id="waterLevel"
-                            class="water-percent">
+            <select id="rangeSelect">
 
-                            0%
+              <option value="5">
+                Last 5 minutes
+              </option>
 
-                        </div>
+              <option value="15">
+                Last 15 minutes
+              </option>
 
-                        <div class="water-bar">
+              <option value="30">
+                Last 30 minutes
+              </option>
 
-                            <div
-                                id="waterBarFill"
-                                class="water-bar-fill">
-                            </div>
+              <option value="60">
+                Last 1 hour
+              </option>
 
-                        </div>
+              <option value="360">
+                Last 6 hours
+              </option>
 
-                        <div class="water-info">
+              <option value="1440">
+                Last 24 hours
+              </option>
 
-                            <div>
+            </select>
 
-                                <strong id="distance">
-                                    -- cm
-                                </strong>
+          </div>
 
-                                <span>
-                                    Distance
-                                </span>
 
-                            </div>
+          <div class="chart-wrap">
 
-                            <div>
+            <canvas id="waterChart"></canvas>
 
-                                <strong id="maxHeightDisplay">
-                                    220.98 cm
-                                </strong>
+          </div>
 
-                                <span>
-                                    Maximum Height
-                                </span>
+        </article>
 
-                            </div>
+      </div>
 
-                        </div>
 
-                    </div>
+      <!-- ALERT -->
 
-                </div>
+      <article
+        class="card alert-banner"
+        id="alertBanner">
 
+        <div>
 
-                <div class="card">
+          <span
+            class="alert-symbol"
+            id="alertSymbol">
+            ✓
+          </span>
 
-                    <h3>📈 Real-Time Water Level</h3>
+          <div>
 
-                    <div class="chart-container">
+            <strong id="alertTitle">
+              SYSTEM NORMAL
+            </strong>
 
-                        <canvas id="waterChart"></canvas>
+            <p id="alertText">
+              No active flood warning.
+            </p>
 
-                    </div>
+          </div>
 
-                </div>
+        </div>
 
-            </div>
+        <span id="alertTime">
+          —
+        </span>
 
+      </article>
 
-            <!-- ALERT -->
+    </section>
 
-            <div
-                id="alertBanner"
-                class="card"
-                style="display:none;">
 
-                <h3 id="alertTitle">
-                    ALERT
-                </h3>
+    <!-- ========================= -->
+    <!-- LIVE MONITORING -->
+    <!-- ========================= -->
 
-                <p id="alertText">
-                    --
-                </p>
+    <section id="page-live" class="page">
 
-                <small id="alertTime">
-                    --
-                </small>
+      <div class="page-title">
 
-            </div>
+        <h2>
+          Live Monitoring
+        </h2>
 
-        </section>
+        <p>
+          Current readings received from the ESP32.
+        </p>
 
+      </div>
 
-        <!-- =========================
-             LIVE MONITORING
-        ========================== -->
 
-        <section id="live" class="page">
+      <div class="grid live-grid">
 
-            <div class="page-title">
+        <article class="card big-metric">
 
-                <h2>Live Monitoring</h2>
+          <span>
+            WATER LEVEL
+          </span>
 
-                <p>
-                    Live ESP32 telemetry.
-                </p>
+          <strong id="liveLevel">
+            0%
+          </strong>
 
-            </div>
+          <small>
+            Calculated from ultrasonic distance
+          </small>
 
+        </article>
 
-            <div class="grid-2">
 
-                <div class="card">
+        <article class="card big-metric">
 
-                    <h3>Water Level</h3>
+          <span>
+            ULTRASONIC DISTANCE
+          </span>
 
-                    <div
-                        id="liveLevel"
-                        class="live-value">
+          <strong id="liveDistance">
+            N/A
+          </strong>
 
-                        0%
+          <small>
+            Distance from sensor to water
+          </small>
 
-                    </div>
+        </article>
 
-                </div>
 
+        <article class="card big-metric">
 
-                <div class="card">
+          <span>
+            FLOOD STATUS
+          </span>
 
-                    <h3>Distance</h3>
+          <strong id="liveStatus">
+            SAFE
+          </strong>
 
-                    <div
-                        id="liveDistance"
-                        class="live-value">
+          <small id="liveStatusSmall">
+            Normal condition
+          </small>
 
-                        -- cm
+        </article>
 
-                    </div>
+      </div>
 
-                </div>
 
+      <!-- LIVE ALARM -->
 
-                <div class="card">
+      <article class="card alarm-live-card">
 
-                    <h3>Status</h3>
+        <div class="card-head">
 
-                    <div
-                        id="liveStatus"
-                        class="live-status">
+          <h3>
+            Alarm Status
+          </h3>
 
-                        SAFE
+          <span id="liveAlarmStatus">
+            DISABLED
+          </span>
 
-                    </div>
+        </div>
 
-                    <div
-                        id="liveStatusSmall">
+        <div class="sensor-list">
 
-                        System normal
+          <div>
+            <span>
+              Alarm System
+            </span>
 
-                    </div>
+            <b id="liveAlarm">
+              OFF
+            </b>
+          </div>
 
-                </div>
+          <div>
+            <span>
+              Current Flood Condition
+            </span>
 
+            <b id="liveAlarmCondition">
+              SAFE
+            </b>
+          </div>
 
-                <div class="card">
+        </div>
 
-                    <h3>Alarm</h3>
+      </article>
 
-                    <div
-                        id="liveAlarm"
-                        class="live-status">
 
-                        ✓ ALARM OFF
+      <article class="card">
 
-                    </div>
+        <div class="card-head">
 
-                    <div
-                        id="liveAlarmStatus">
+          <h3>
+            Sensor States
+          </h3>
 
-                        SAFE
+          <span id="liveTimestamp">
+            No reading
+          </span>
 
-                    </div>
+        </div>
 
-                    <div
-                        id="liveAlarmCondition">
 
-                        No alarm condition.
+        <div class="sensor-list">
 
-                    </div>
+          <div>
+            <span>
+              Sensor 1 — LOW
+            </span>
 
-                </div>
+            <b id="liveLow">
+              INACTIVE
+            </b>
+          </div>
 
-            </div>
 
+          <div>
+            <span>
+              Sensor 2 — MEDIUM
+            </span>
 
-            <div class="card">
+            <b id="liveMedium">
+              INACTIVE
+            </b>
+          </div>
 
-                <h3>Water Sensors</h3>
 
-                <div class="live-sensors">
+          <div>
+            <span>
+              Sensor 3 — HIGH
+            </span>
 
-                    <div class="live-sensor">
+            <b id="liveHigh">
+              INACTIVE
+            </b>
+          </div>
 
-                        <strong>LOW</strong>
+        </div>
 
-                        <div id="liveLow">
-                            OFF
-                        </div>
+      </article>
 
-                    </div>
+    </section>
 
-                    <div class="live-sensor">
 
-                        <strong>MEDIUM</strong>
+    <!-- ========================= -->
+    <!-- WATER LEVEL -->
+    <!-- ========================= -->
 
-                        <div id="liveMedium">
-                            OFF
-                        </div>
+    <section id="page-water" class="page">
 
-                    </div>
+      <div class="page-title">
 
-                    <div class="live-sensor">
+        <h2>
+          Water Level
+        </h2>
 
-                        <strong>HIGH</strong>
+        <p>
+          Ultrasonic measurement and calculated level.
+        </p>
 
-                        <div id="liveHigh">
-                            OFF
-                        </div>
+      </div>
 
-                    </div>
 
-                </div>
+      <div class="card water-detail">
 
-                <br>
+        <div class="large-number">
 
-                <small>
-                    Last update:
-                    <span id="liveTimestamp">
-                        --
-                    </span>
-                </small>
+          <strong id="waterDetailPercent">
+            0%
+          </strong>
 
-            </div>
+          <span>
+            Current water level
+          </span>
 
-        </section>
+        </div>
 
 
-        <!-- =========================
-             WATER LEVEL
-        ========================== -->
+        <div class="water-bar">
 
-        <section id="water" class="page">
+          <div id="waterBarFill"></div>
 
-            <div class="page-title">
+        </div>
 
-                <h2>Water Level Details</h2>
 
-                <p>
-                    Detailed ultrasonic water-level measurement.
-                </p>
+        <div class="metric-row">
 
-            </div>
+          <div>
 
+            <small>
+              Distance
+            </small>
 
-            <div class="card">
+            <b id="waterDetailDistance">
+              N/A
+            </b>
 
-                <div
-                    id="waterDetailPercent"
-                    class="water-percent">
+          </div>
 
-                    0%
 
-                </div>
+          <div>
 
-                <div class="water-bar">
+            <small>
+              Maximum Height
+            </small>
 
-                    <div
-                        id="waterBarFill"
-                        class="water-bar-fill">
-                    </div>
+            <b id="waterDetailMax">
+              220.98 cm
+            </b>
 
-                </div>
+          </div>
 
-                <div class="water-info">
 
-                    <div>
+          <div>
 
-                        <strong id="waterDetailDistance">
-                            -- cm
-                        </strong>
+            <small>
+              Status
+            </small>
 
-                        <span>
-                            Measured Distance
-                        </span>
+            <b id="waterDetailStatus">
+              SAFE
+            </b>
 
-                    </div>
+          </div>
 
-                    <div>
+        </div>
 
-                        <strong id="waterDetailMax">
-                            220.98 cm
-                        </strong>
 
-                        <span>
-                            Maximum Height
-                        </span>
+        <p class="formula">
 
-                    </div>
+          Machine Height: 7.25 feet = 220.98 cm
 
-                    <div>
+          <br><br>
 
-                        <strong id="waterDetailStatus">
-                            SAFE
-                        </strong>
+          Water Level % =
+          ((Maximum Height − Distance)
+          ÷ Maximum Height) × 100
 
-                        <span>
-                            Status
-                        </span>
+        </p>
 
-                    </div>
+      </div>
 
-                </div>
+    </section>
 
-            </div>
 
-        </section>
+    <!-- ========================= -->
+    <!-- GRAPHS -->
+    <!-- ========================= -->
 
+    <section id="page-graphs" class="page">
 
-        <!-- =========================
-             GRAPHS
-        ========================== -->
+      <div class="page-title">
 
-        <section id="graphs" class="page">
+        <h2>
+          Graphs
+        </h2>
 
-            <div class="page-title">
+        <p>
+          Historical water-level trend stored in this browser.
+        </p>
 
-                <h2>Water Level Graph</h2>
+      </div>
 
-                <p>
-                    Historical real-time water-level data.
-                </p>
 
-            </div>
+      <article class="card graph-large">
 
-            <div class="card">
+        <canvas id="historyChart"></canvas>
 
-                <div class="chart-container">
+      </article>
 
-                    <canvas id="historyChart"></canvas>
+    </section>
 
-                </div>
 
-            </div>
+    <!-- ========================= -->
+    <!-- ALERT HISTORY -->
+    <!-- ========================= -->
 
-        </section>
+    <section id="page-alerts" class="page">
 
+      <div class="page-title">
 
-        <!-- =========================
-             ALERT HISTORY
-        ========================== -->
+        <h2>
+          Alert History
+        </h2>
 
-        <section id="history" class="page">
+        <p>
+          Warnings and critical events received from the monitoring system.
+        </p>
 
-            <div class="page-title">
+      </div>
 
-                <h2>Alert History</h2>
 
-                <p>
-                    Previous flood warnings and critical alerts.
-                </p>
+      <article class="card">
 
-            </div>
+        <div class="toolbar">
 
+          <input
+            id="alertSearch"
+            placeholder="Search alerts..."
+          >
 
-            <div class="card">
+          <select id="alertFilter">
 
-                <button
-                    class="btn btn-danger"
-                    onclick="clearAlertHistory()">
+            <option value="ALL">
+              All statuses
+            </option>
 
-                    Clear History
+            <option value="WARNING">
+              Warning
+            </option>
 
-                </button>
+            <option value="CRITICAL">
+              Critical
+            </option>
 
-                <button
-                    class="btn btn-success"
-                    onclick="exportAlertHistory()">
+            <option value="SAFE">
+              Safe
+            </option>
 
-                    Export
+          </select>
 
-                </button>
 
-                <br><br>
+          <button id="exportBtn">
+            Export CSV
+          </button>
 
-                <table>
 
-                    <thead>
+          <button
+            id="clearBtn"
+            class="danger-btn">
 
-                        <tr>
+            Clear History
 
-                            <th>Time</th>
+          </button>
 
-                            <th>Status</th>
+        </div>
 
-                            <th>Water Level</th>
 
-                            <th>Distance</th>
+        <div class="table-scroll">
 
-                            <th>Sensors</th>
+          <table>
 
-                        </tr>
+            <thead>
 
-                    </thead>
+              <tr>
 
-                    <tbody id="alertHistoryTable">
+                <th>
+                  Time
+                </th>
 
-                        <tr>
+                <th>
+                  Sensor
+                </th>
 
-                            <td colspan="5">
-                                No alerts yet.
-                            </td>
+                <th>
+                  Water Level
+                </th>
 
-                        </tr>
+                <th>
+                  Distance
+                </th>
 
-                    </tbody>
+                <th>
+                  Status
+                </th>
 
-                </table>
+              </tr>
 
-            </div>
+            </thead>
 
-        </section>
 
+            <tbody id="alertTable">
 
-        <!-- =========================
-             SETTINGS
-        ========================== -->
+            </tbody>
 
-        <section id="settings" class="page">
+          </table>
 
-            <div class="page-title">
+        </div>
 
-                <h2>Settings</h2>
+      </article>
 
-                <p>
-                    Configure flood monitoring thresholds and server connection.
-                </p>
+    </section>
 
-            </div>
 
+    <!-- ========================= -->
+    <!-- SETTINGS -->
+    <!-- ========================= -->
 
-            <div class="grid-2">
+    <section id="page-settings" class="page">
 
-                <div class="card">
+      <div class="page-title">
 
-                    <h3>Flood Thresholds</h3>
+        <h2>
+          Settings
+        </h2>
 
-                    <div class="form-group">
+        <p>
+          Configure water-level thresholds and ESP32 communication.
+        </p>
 
-                        <label>
-                            Maximum Height (cm)
-                        </label>
+      </div>
 
-                        <input
-                            id="maxHeight"
-                            type="number"
-                            step="0.01"
-                            value="220.98">
 
-                    </div>
+      <article class="card settings-card">
 
+        <h3>
+          Water-Level Settings
+        </h3>
 
-                    <div class="form-group">
 
-                        <label>
-                            Low Threshold (%)
-                        </label>
+        <div class="form-grid">
 
-                        <input
-                            id="lowThreshold"
-                            type="number"
-                            value="0">
+          <label>
 
-                    </div>
+            Maximum Sensor Height (cm)
 
+            <input
+              id="maxHeight"
+              type="number"
+              min="1"
+              step="0.1"
+              value="220.98"
+            >
 
-                    <div class="form-group">
+          </label>
 
-                        <label>
-                            Medium Threshold (%)
-                        </label>
 
-                        <input
-                            id="mediumThreshold"
-                            type="number"
-                            value="40">
+          <label>
 
-                    </div>
+            Low Threshold (%)
 
+            <input
+              id="lowThreshold"
+              type="number"
+              min="0"
+              max="100"
+              value="0"
+            >
 
-                    <div class="form-group">
+          </label>
 
-                        <label>
-                            High Threshold (%)
-                        </label>
 
-                        <input
-                            id="highThreshold"
-                            type="number"
-                            value="70">
+          <label>
 
-                    </div>
+            Medium Threshold (%)
 
-                </div>
+            <input
+              id="mediumThreshold"
+              type="number"
+              min="0"
+              max="100"
+              value="40"
+            >
 
+          </label>
 
-                <div class="card">
 
-                    <h3>Server Connection</h3>
+          <label>
 
-                    <div class="form-group">
+            High Threshold (%)
 
-                        <label>
-                            ESP32 IP Address
-                        </label>
+            <input
+              id="highThreshold"
+              type="number"
+              min="0"
+              max="100"
+              value="70"
+            >
 
-                        <input
-                            id="espIp"
-                            type="text"
-                            placeholder="10.33.99.191">
+          </label>
 
-                    </div>
+        </div>
 
 
-                    <div class="form-group">
+        <h3>
+          Connection Settings
+        </h3>
 
-                        <label>
-                            WebSocket URL
-                        </label>
 
-                        <input
-                            id="wsUrl"
-                            type="text"
-                            value="ws://localhost:3000">
+        <div class="form-grid">
 
-                    </div>
+          <label>
 
+            ESP32 IP Address
 
-                    <div class="form-group">
+            <input
+              id="espIp"
+              placeholder="ESP32 IP address"
+            >
 
-                        <label>
-                            API URL
-                        </label>
+          </label>
 
-                        <input
-                            id="apiUrl"
-                            type="text"
-                            value="http://localhost:3000">
 
-                    </div>
+          <label>
 
+            WebSocket URL
 
-                    <div class="form-group">
+            <input
+              id="wsUrl"
+              value="ws://localhost:3000"
+              placeholder="ws://localhost:3000"
+            >
 
-                        <label>
-                            Update Interval (ms)
-                        </label>
+          </label>
 
-                        <input
-                            id="updateInterval"
-                            type="number"
-                            value="1000">
 
-                    </div>
+          <label>
 
+            REST API URL
 
-                    <div class="form-group">
+            <input
+              id="apiUrl"
+              value="http://localhost:3000"
+              placeholder="http://localhost:3000"
+            >
 
-                        <label>
-                            Connection Timeout (ms)
-                        </label>
+          </label>
 
-                        <input
-                            id="timeout"
-                            type="number"
-                            value="5000">
 
-                    </div>
+          <label>
 
-                </div>
+            Update Interval (ms)
 
-            </div>
+            <input
+              id="updateInterval"
+              type="number"
+              min="250"
+              value="1000"
+            >
 
+          </label>
 
-            <div class="card">
 
-                <button
-                    id="saveSettings"
-                    class="btn btn-primary">
+          <label>
 
-                    💾 Save Settings
+            Connection Timeout (ms)
 
-                </button>
+            <input
+              id="timeout"
+              type="number"
+              min="1000"
+              value="5000"
+            >
 
-                <button
-                    id="connectBtn"
-                    class="btn btn-success">
+          </label>
 
-                    🔌 Connect
+        </div>
 
-                </button>
 
-                <button
-                    id="testApi"
-                    class="btn btn-gray">
+        <div class="settings-actions">
 
-                    🧪 Test API
+          <button id="saveSettings">
+            Save Settings
+          </button>
 
-                </button>
+          <button id="connectBtn">
+            Connect ESP32
+          </button>
 
-            </div>
+          <button id="testApi">
+            Test REST API
+          </button>
 
-        </section>
+        </div>
 
 
-        <!-- =========================
-             SYSTEM INFORMATION
-        ========================== -->
+        <p
+          id="settingsMessage"
+          class="settings-message">
+        </p>
 
-        <section id="system" class="page">
+      </article>
 
-            <div class="page-title">
+    </section>
 
-                <h2>System Information</h2>
 
-                <p>
-                    A.R.M.O.R. BOT system status.
-                </p>
+    <!-- ========================= -->
+    <!-- SYSTEM INFORMATION -->
+    <!-- ========================= -->
 
-            </div>
+    <section id="page-system" class="page">
 
+      <div class="page-title">
 
-            <div class="card">
+        <h2>
+          System Information
+        </h2>
 
-                <div class="info-row">
+        <p>
+          Hardware and software configuration.
+        </p>
 
-                    <span>
-                        System
-                    </span>
+      </div>
 
-                    <strong>
-                        A.R.M.O.R. BOT
-                    </strong>
 
-                </div>
+      <article class="card info-card">
 
+        <div>
+          <span>Device</span>
+          <b>ESP32</b>
+        </div>
 
-                <div class="info-row">
+        <div>
+          <span>Water Sensors</span>
+          <b>3</b>
+        </div>
 
-                    <span>
-                        Device
-                    </span>
+        <div>
+          <span>Ultrasonic Sensor</span>
+          <b>1</b>
+        </div>
 
-                    <strong>
-                        ESP32
-                    </strong>
+        <div>
+          <span>Machine Height</span>
+          <b>7.25 ft / 220.98 cm</b>
+        </div>
 
-                </div>
+        <div>
+          <span>OLED Display</span>
+          <b>Connected</b>
+        </div>
 
+        <div>
+          <span>Piezo Buzzer</span>
+          <b>Connected</b>
+        </div>
 
-                <div class="info-row">
+        <div>
+          <span>Wi-Fi</span>
+          <b id="systemWifi">
+            Unknown
+          </b>
+        </div>
 
-                    <span>
-                        Water Sensors
-                    </span>
+        <div>
+          <span>Website Connection</span>
+          <b id="systemConnection">
+            Offline
+          </b>
+        </div>
 
-                    <strong>
-                        3
-                    </strong>
+        <div>
+          <span>Alarm</span>
+          <b id="systemAlarm">
+            Disabled
+          </b>
+        </div>
 
-                </div>
+        <div>
+          <span>System Status</span>
+          <b id="systemStatus">
+            Waiting for data
+          </b>
+        </div>
 
+      </article>
 
-                <div class="info-row">
+    </section>
 
-                    <span>
-                        Ultrasonic Sensor
-                    </span>
-
-                    <strong>
-                        1
-                    </strong>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <span>
-                        Maximum Height
-                    </span>
-
-                    <strong>
-                        220.98 cm / 7.25 ft
-                    </strong>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <span>
-                        Warning Level
-                    </span>
-
-                    <strong>
-                        40%
-                    </strong>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <span>
-                        Critical Level
-                    </span>
-
-                    <strong>
-                        70%
-                    </strong>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <span>
-                        Wi-Fi
-                    </span>
-
-                    <strong id="systemWifi">
-                        OFFLINE
-                    </strong>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <span>
-                        Server Connection
-                    </span>
-
-                    <strong id="systemConnection">
-                        DISCONNECTED
-                    </strong>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <span>
-                        System Status
-                    </span>
-
-                    <strong id="systemStatus">
-                        SAFE
-                    </strong>
-
-                </div>
-
-
-                <div class="info-row">
-
-                    <span>
-                        Alarm
-                    </span>
-
-                    <strong id="systemAlarm">
-                        DISABLED
-                    </strong>
-
-                </div>
-
-            </div>
-
-        </section>
-
-    </main>
+  </main>
 
 </div>
 
 
-<!-- =====================================================
-     A.R.M.O.R. BOT JAVASCRIPT
-===================================================== -->
+<!-- ================================================= -->
+<!-- WEBSITE FLOOD STATUS + ALARM CONTROLLER -->
+<!-- ================================================= -->
 
 <script>
 
-"use strict";
+(function () {
+
+  const MAX_HEIGHT_CM = 220.98;
+
+  const MEDIUM_THRESHOLD = 40;
+  const HIGH_THRESHOLD = 70;
+
+  let alarmEnabled = false;
+  let alarmMuted = false;
+  let audioContext = null;
+  let alarmTimer = null;
+
+  let lastCalculatedStatus = "SAFE";
+
+  const enableBtn =
+    document.getElementById("enableAlarmBtn");
+
+  const muteBtn =
+    document.getElementById("muteAlarmBtn");
+
+  const alarmPanel =
+    document.getElementById("alarmPanel");
+
+  const alarmIcon =
+    document.getElementById("alarmIcon");
+
+  const alarmTitle =
+    document.getElementById("alarmTitle");
+
+  const alarmMessage =
+    document.getElementById("alarmMessage");
+
+  const liveAlarm =
+    document.getElementById("liveAlarm");
+
+  const liveAlarmStatus =
+    document.getElementById("liveAlarmStatus");
+
+  const liveAlarmCondition =
+    document.getElementById("liveAlarmCondition");
+
+  const systemAlarm =
+    document.getElementById("systemAlarm");
 
 
-/* =====================================================
-   SETTINGS
-===================================================== */
+  // ============================================
+  // ENABLE ALARM
+  // ============================================
 
-const DEFAULTS = {
-
-    maxHeight: 220.98,
-
-    lowThreshold: 0,
-
-    mediumThreshold: 40,
-
-    highThreshold: 70,
-
-    espIp: "10.33.99.191",
-
-    wsUrl: "ws://localhost:3000",
-
-    apiUrl: "http://localhost:3000",
-
-    updateInterval: 1000,
-
-    timeout: 5000
-
-};
-
-
-let settings = {
-    ...DEFAULTS
-};
-
-
-/* =====================================================
-   GLOBAL DATA
-===================================================== */
-
-let latestData = null;
-
-let socket = null;
-
-let waterChart = null;
-
-let historyChart = null;
-
-let historyData = [];
-
-let alertHistory = [];
-
-let lastStatus = "SAFE";
-
-
-/* =====================================================
-   ALARM VARIABLES
-===================================================== */
-
-let alarmEnabled = false;
-
-let alarmMuted = false;
-
-let alarmTimer = null;
-
-let audioContext = null;
-
-
-/* =====================================================
-   LOAD SETTINGS
-===================================================== */
-
-function loadSettings() {
+  enableBtn.addEventListener("click", function () {
 
     try {
 
-        const saved =
-            localStorage.getItem(
-                "armorSettings"
-            );
+      audioContext =
+        new (
+          window.AudioContext ||
+          window.webkitAudioContext
+        )();
 
-        if (saved) {
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
 
-            settings = {
-                ...DEFAULTS,
-                ...JSON.parse(saved)
-            };
+      alarmEnabled = true;
+      alarmMuted = false;
 
-        }
+      enableBtn.textContent =
+        "🔔 ALARM ENABLED";
+
+      muteBtn.disabled = false;
+
+      if (systemAlarm) {
+        systemAlarm.textContent = "Enabled";
+      }
+
+      if (liveAlarmStatus) {
+        liveAlarmStatus.textContent = "ENABLED";
+      }
+
+      updateAlarmDisplay(
+        lastCalculatedStatus
+      );
 
     } catch (error) {
 
-        console.error(
-            "Settings load error:",
-            error
-        );
+      console.error(
+        "Alarm initialization failed:",
+        error
+      );
 
+      alarmMessage.textContent =
+        "Browser audio could not be enabled.";
     }
 
-
-    setValue(
-        "maxHeight",
-        settings.maxHeight
-    );
-
-    setValue(
-        "lowThreshold",
-        settings.lowThreshold
-    );
-
-    setValue(
-        "mediumThreshold",
-        settings.mediumThreshold
-    );
-
-    setValue(
-        "highThreshold",
-        settings.highThreshold
-    );
-
-    setValue(
-        "espIp",
-        settings.espIp
-    );
-
-    setValue(
-        "wsUrl",
-        settings.wsUrl
-    );
-
-    setValue(
-        "apiUrl",
-        settings.apiUrl
-    );
-
-    setValue(
-        "updateInterval",
-        settings.updateInterval
-    );
-
-    setValue(
-        "timeout",
-        settings.timeout
-    );
+  });
 
 
-    updateMaxHeightDisplay();
+  // ============================================
+  // MUTE
+  // ============================================
 
-}
+  muteBtn.addEventListener("click", function () {
+
+    alarmMuted = !alarmMuted;
+
+    if (alarmMuted) {
+
+      muteBtn.textContent =
+        "🔊 UNMUTE";
+
+      stopAlarmSound();
+
+      alarmMessage.textContent =
+        "Alarm muted. Flood monitoring remains active.";
+
+    } else {
+
+      muteBtn.textContent =
+        "🔇 MUTE";
+
+      updateAlarmDisplay(
+        lastCalculatedStatus
+      );
+    }
+
+  });
 
 
-/* =====================================================
-   HELPER
-===================================================== */
+  // ============================================
+  // READ SENSOR STATE
+  // ============================================
 
-function setValue(id, value) {
+  function isActive(id) {
 
     const element =
-        document.getElementById(id);
+      document.getElementById(id);
 
-    if (element) {
-
-        element.value = value;
-
+    if (!element) {
+      return false;
     }
 
-}
+    const text =
+      element.textContent
+        .trim()
+        .toUpperCase();
 
-
-/* =====================================================
-   SAVE SETTINGS
-===================================================== */
-
-function saveSettings() {
-
-    settings.maxHeight =
-        parseFloat(
-            document.getElementById(
-                "maxHeight"
-            ).value
-        ) || 220.98;
-
-
-    settings.lowThreshold =
-        parseFloat(
-            document.getElementById(
-                "lowThreshold"
-            ).value
-        ) || 0;
-
-
-    settings.mediumThreshold =
-        parseFloat(
-            document.getElementById(
-                "mediumThreshold"
-            ).value
-        ) || 40;
-
-
-    settings.highThreshold =
-        parseFloat(
-            document.getElementById(
-                "highThreshold"
-            ).value
-        ) || 70;
-
-
-    settings.espIp =
-        document.getElementById(
-            "espIp"
-        ).value.trim();
-
-
-    settings.wsUrl =
-        document.getElementById(
-            "wsUrl"
-        ).value.trim();
-
-
-    settings.apiUrl =
-        document.getElementById(
-            "apiUrl"
-        ).value.trim();
-
-
-    settings.updateInterval =
-        parseInt(
-            document.getElementById(
-                "updateInterval"
-            ).value
-        ) || 1000;
-
-
-    settings.timeout =
-        parseInt(
-            document.getElementById(
-                "timeout"
-            ).value
-        ) || 5000;
-
-
-    localStorage.setItem(
-        "armorSettings",
-        JSON.stringify(settings)
+    return (
+      text === "ACTIVE" ||
+      text === "ON" ||
+      text === "DETECTED"
     );
+  }
 
 
-    updateMaxHeightDisplay();
+  // ============================================
+  // READ WATER LEVEL
+  // ============================================
 
-    alert("Settings saved successfully.");
+  function getWaterLevel() {
 
-}
+    const element =
+      document.getElementById("waterLevel");
 
-
-/* =====================================================
-   MAX HEIGHT DISPLAY
-===================================================== */
-
-function updateMaxHeightDisplay() {
-
-    const displays = [
-
-        "maxHeightDisplay",
-
-        "waterDetailMax"
-
-    ];
-
-
-    displays.forEach(function(id) {
-
-        const element =
-            document.getElementById(id);
-
-        if (element) {
-
-            element.textContent =
-                settings.maxHeight.toFixed(2)
-                + " cm";
-
-        }
-
-    });
-
-}
-
-
-/* =====================================================
-   PAGE NAVIGATION
-===================================================== */
-
-function showPage(pageId, button) {
-
-    document
-        .querySelectorAll(".page")
-        .forEach(function(page) {
-
-            page.classList.remove(
-                "active"
-            );
-
-        });
-
-
-    const page =
-        document.getElementById(pageId);
-
-    if (page) {
-
-        page.classList.add(
-            "active"
-        );
-
+    if (!element) {
+      return 0;
     }
 
+    const value =
+      parseFloat(
+        element.textContent
+      );
 
-    document
-        .querySelectorAll(".nav button")
-        .forEach(function(btn) {
-
-            btn.classList.remove(
-                "active"
-            );
-
-        });
-
-
-    if (button) {
-
-        button.classList.add(
-            "active"
-        );
-
+    if (isNaN(value)) {
+      return 0;
     }
 
-}
+    return Math.max(
+      0,
+      Math.min(
+        100,
+        value
+      )
+    );
+  }
 
 
-/* =====================================================
-   CALCULATE WATER LEVEL
-===================================================== */
+  // ============================================
+  // DETERMINE FLOOD STATUS
+  //
+  // BOTH:
+  // 1. WATER SENSORS
+  // 2. ULTRASONIC LEVEL
+  // ============================================
 
-function calculateWaterLevel(distance) {
+  function calculateFloodStatus() {
+
+    const low =
+      isActive("lowStatus");
+
+    const medium =
+      isActive("mediumStatus");
+
+    const high =
+      isActive("highStatus");
+
+    const level =
+      getWaterLevel();
+
+
+    /*
+      CRITICAL CONDITIONS:
+
+      HIGH SENSOR active
+      OR
+      ultrasonic >= 70%
+    */
 
     if (
-        distance === null ||
-        !Number.isFinite(distance)
+      high ||
+      level >= HIGH_THRESHOLD
     ) {
 
-        return 0;
-
-    }
-
-
-    const maxHeight =
-        settings.maxHeight;
-
-
-    if (distance >= maxHeight) {
-
-        return 0;
-
-    }
-
-
-    if (distance <= 0) {
-
-        return 100;
-
-    }
-
-
-    let percentage =
-        (
-            (maxHeight - distance)
-            / maxHeight
-        ) * 100;
-
-
-    percentage =
-        Math.max(
-            0,
-            Math.min(
-                100,
-                percentage
-            )
-        );
-
-
-    return percentage;
-
-}
-
-```javascript
-/* =====================================================
-   NORMALIZE DATA
-===================================================== */
-
-function normalizeData(data) {
-
-    if (
-        !data ||
-        typeof data !== "object"
-    ) {
-
-        return null;
-
-    }
-
-
-    let distance =
-        Number(data.distance);
-
-
-    if (
-        !Number.isFinite(distance) ||
-        distance < 0
-    ) {
-
-        distance = null;
-
+      return {
+        status: "CRITICAL",
+        reason:
+          high
+            ? "HIGH level sensor detected water."
+            : "Ultrasonic level reached 70% or higher."
+      };
     }
 
 
     /*
-       IMPORTANT:
-       Calculate the water level directly from
-       the ultrasonic distance.
+      WARNING CONDITIONS:
 
-       This prevents an incorrect waterLevel
-       value coming from the ESP32/server from
-       keeping the website stuck on WARNING.
+      MEDIUM SENSOR active
+      OR
+      ultrasonic >= 40%
     */
 
-    let waterLevel =
-        calculateWaterLevel(distance);
+    if (
+      medium ||
+      level >= MEDIUM_THRESHOLD
+    ) {
+
+      return {
+        status: "WARNING",
+        reason:
+          medium
+            ? "MEDIUM level sensor detected water."
+            : "Ultrasonic level reached 40% or higher."
+      };
+    }
 
 
-    waterLevel =
-        Math.max(
-            0,
-            Math.min(
-                100,
-                waterLevel
-            )
-        );
+    /*
+      LOW SENSOR:
+
+      LOW sensor indicates the beginning
+      of water detection, but does not
+      create a warning by itself.
+    */
+
+    if (low) {
+
+      return {
+        status: "SAFE",
+        reason:
+          "LOW level sensor detected water."
+      };
+    }
 
 
     return {
-
-        distance: distance,
-
-        waterLevel: waterLevel,
-
-        lowSensor:
-            data.lowSensor === true ||
-            data.lowSensor === 1 ||
-            data.lowSensor === "true",
-
-        mediumSensor:
-            data.mediumSensor === true ||
-            data.mediumSensor === 1 ||
-            data.mediumSensor === "true",
-
-        highSensor:
-            data.highSensor === true ||
-            data.highSensor === 1 ||
-            data.highSensor === "true",
-
-        timestamp:
-            data.timestamp ||
-            new Date().toISOString()
-
+      status: "SAFE",
+      reason:
+        "Water level is within the safe range."
     };
 
-}
+  }
 
 
-/* =====================================================
-   FLOOD STATUS
-   BOTH WATER SENSORS + ULTRASONIC
-===================================================== */
+  // ============================================
+  // UPDATE STATUS CARD
+  // ============================================
 
-function calculateFloodStatus(data) {
+  function updateFloodStatus() {
 
-    const level =
-        Number(data.waterLevel) || 0;
-
-
-    const medium =
-        data.mediumSensor === true;
-
-
-    const high =
-        data.highSensor === true;
-
-
-    /*
-       CRITICAL
-
-       HIGH sensor is active
-       OR ultrasonic water level is 70% or higher
-    */
-
-    if (
-        high ||
-        level >= settings.highThreshold
-    ) {
-
-        return "CRITICAL";
-
-    }
-
-
-    /*
-       WARNING
-
-       MEDIUM sensor is active
-       OR ultrasonic water level is 40% or higher
-    */
-
-    if (
-        medium ||
-        level >= settings.mediumThreshold
-    ) {
-
-        return "WARNING";
-
-    }
-
-
-    /*
-       SAFE
-
-       HIGH = OFF
-       MEDIUM = OFF
-       Water level < 40%
-    */
-
-    return "SAFE";
-
-}
-```
-
-
-/* =====================================================
-   UPDATE ALL UI
-===================================================== */
-
-function updateUI(data) {
-
-    if (!data) {
-
-        return;
-
-    }
-
-
-    latestData = data;
-
+    const result =
+      calculateFloodStatus();
 
     const status =
-        calculateFloodStatus(data);
+      result.status;
+
+    lastCalculatedStatus =
+      status;
 
 
-    /* STATUS CARD */
+    const statusCard =
+      document.getElementById("statusCard");
 
-    updateStatusCard(status);
+    const statusTitle =
+      document.getElementById("statusTitle");
 
+    const statusDescription =
+      document.getElementById("statusDescription");
 
-    /* SENSOR CARDS */
+    const statusIcon =
+      document.getElementById("statusIcon");
 
-    updateSensor(
-        "lowStatus",
-        "lowCard",
-        data.lowSensor
-    );
+    const liveStatus =
+      document.getElementById("liveStatus");
 
-    updateSensor(
-        "mediumStatus",
-        "mediumCard",
-        data.mediumSensor
-    );
+    const liveStatusSmall =
+      document.getElementById("liveStatusSmall");
 
-    updateSensor(
-        "highStatus",
-        "highCard",
-        data.highSensor
-    );
+    const waterDetailStatus =
+      document.getElementById(
+        "waterDetailStatus"
+      );
 
 
-    /* WATER LEVEL */
+    if (statusCard) {
 
-    updateWaterLevel(
-        data.waterLevel,
-        data.distance,
-        status
-    );
+      statusCard.classList.remove(
+        "safe",
+        "warning",
+        "critical"
+      );
 
-
-    /* LIVE */
-
-    setText(
-        "liveLevel",
-        data.waterLevel.toFixed(1) + "%"
-    );
-
-    setText(
-        "liveDistance",
-        data.distance === null
-            ? "-- cm"
-            : data.distance.toFixed(1) + " cm"
-    );
+      statusCard.classList.add(
+        status.toLowerCase()
+      );
+    }
 
 
-    setText(
-        "liveStatus",
-        status
-    );
+    if (statusTitle) {
+      statusTitle.textContent =
+        status;
+    }
 
 
-    setText(
-        "liveStatusSmall",
-        getStatusDescription(status)
-    );
+    if (statusIcon) {
 
+      if (status === "CRITICAL") {
+        statusIcon.textContent = "🚨";
+      }
 
-    setText(
-        "liveLow",
-        data.lowSensor
-            ? "ACTIVE"
-            : "OFF"
-    );
+      else if (status === "WARNING") {
+        statusIcon.textContent = "⚠";
+      }
 
-
-    setText(
-        "liveMedium",
-        data.mediumSensor
-            ? "ACTIVE"
-            : "OFF"
-    );
-
-
-    setText(
-        "liveHigh",
-        data.highSensor
-            ? "ACTIVE"
-            : "OFF"
-    );
-
-
-    setText(
-        "liveTimestamp",
-        formatTime(data.timestamp)
-    );
-
-
-    /* CONNECTION */
-
-    setConnection(true);
-
-
-    /* SYSTEM */
-
-    setText(
-        "systemWifi",
-        "CONNECTED"
-    );
-
-    setText(
-        "systemConnection",
-        "CONNECTED"
-    );
-
-    setText(
-        "systemStatus",
-        status
-    );
-
-
-    /* ALARM */
-
-    updateAlarm(status, data);
-
-
-    /* GRAPH */
-
-    updateCharts(
-        data.waterLevel
-    );
-
-
-    /* ALERT HISTORY */
-
-    if (
-        status !== "SAFE" &&
-        status !== lastStatus
-    ) {
-
-        addAlert(data, status);
+      else {
+        statusIcon.textContent = "✓";
+      }
 
     }
 
 
-    lastStatus = status;
+    if (statusDescription) {
 
-}
+      if (status === "CRITICAL") {
 
+        statusDescription.textContent =
+          "CRITICAL FLOOD CONDITION: " +
+          result.reason;
 
-/* =====================================================
-   STATUS CARD
-===================================================== */
+      }
 
-function updateStatusCard(status) {
+      else if (status === "WARNING") {
 
-    const card =
-        document.getElementById(
-            "statusCard"
-        );
+        statusDescription.textContent =
+          "WARNING: " +
+          result.reason;
 
-    const icon =
-        document.getElementById(
-            "statusIcon"
-        );
+      }
 
-    const title =
-        document.getElementById(
-            "statusTitle"
-        );
+      else {
 
-    const description =
-        document.getElementById(
-            "statusDescription"
-        );
+        statusDescription.textContent =
+          result.reason;
+      }
+    }
 
 
-    card.classList.remove(
-        "warning",
-        "critical"
+    if (liveStatus) {
+      liveStatus.textContent =
+        status;
+    }
+
+
+    if (liveStatusSmall) {
+
+      if (status === "CRITICAL") {
+        liveStatusSmall.textContent =
+          "Critical flood condition";
+      }
+
+      else if (status === "WARNING") {
+        liveStatusSmall.textContent =
+          "Warning flood condition";
+      }
+
+      else {
+        liveStatusSmall.textContent =
+          "Normal condition";
+      }
+
+    }
+
+
+    if (waterDetailStatus) {
+      waterDetailStatus.textContent =
+        status;
+    }
+
+
+    updateAlarmDisplay(status);
+
+  }
+
+
+  // ============================================
+  // ALARM DISPLAY
+  // ============================================
+
+  function updateAlarmDisplay(status) {
+
+    if (!alarmPanel) {
+      return;
+    }
+
+
+    alarmPanel.classList.remove(
+      "alarm-safe",
+      "alarm-warning",
+      "alarm-critical",
+      "alarm-active"
     );
 
 
     if (status === "CRITICAL") {
 
-        card.classList.add(
-            "critical"
+      alarmPanel.classList.add(
+        "alarm-critical"
+      );
+
+      alarmIcon.textContent =
+        "🚨";
+
+      alarmTitle.textContent =
+        "CRITICAL FLOOD ALARM";
+
+      alarmMessage.textContent =
+        "CRITICAL condition detected. " +
+        "Check the water level immediately.";
+
+      if (
+        alarmEnabled &&
+        !alarmMuted
+      ) {
+
+        alarmPanel.classList.add(
+          "alarm-active"
         );
 
-        icon.textContent = "🚨";
+        startAlarmSound();
 
-        title.textContent =
-            "CRITICAL";
+      }
 
-        description.textContent =
-            "Critical flood condition detected!";
+      if (liveAlarm) {
+        liveAlarm.textContent =
+          alarmEnabled && !alarmMuted
+            ? "ACTIVE"
+            : "MUTED";
+      }
 
     }
+
 
     else if (status === "WARNING") {
 
-        card.classList.add(
-            "warning"
+      alarmPanel.classList.add(
+        "alarm-warning"
+      );
+
+      alarmIcon.textContent =
+        "⚠️";
+
+      alarmTitle.textContent =
+        "FLOOD WARNING";
+
+      alarmMessage.textContent =
+        "WARNING condition detected. " +
+        "Water level requires monitoring.";
+
+      if (
+        alarmEnabled &&
+        !alarmMuted
+      ) {
+
+        alarmPanel.classList.add(
+          "alarm-active"
         );
 
-        icon.textContent = "⚠️";
+        startAlarmSound();
 
-        title.textContent =
-            "WARNING";
+      }
 
-        description.textContent =
-            "Water level is rising. Stay alert.";
+      if (liveAlarm) {
+        liveAlarm.textContent =
+          alarmEnabled && !alarmMuted
+            ? "ACTIVE"
+            : "MUTED";
+      }
 
     }
+
 
     else {
 
-        icon.textContent = "🟢";
+      alarmPanel.classList.add(
+        "alarm-safe"
+      );
 
-        title.textContent =
-            "SAFE";
+      alarmIcon.textContent =
+        "🔕";
 
-        description.textContent =
-            "Water level is currently safe.";
+      alarmTitle.textContent =
+        "FLOOD ALARM";
 
-    }
+      alarmMessage.textContent =
+        alarmEnabled
+          ? "Alarm enabled. No active flood warning."
+          : "Alarm is ready. Enable the alarm to receive audible warnings.";
 
-}
+      stopAlarmSound();
 
-
-/* =====================================================
-   SENSOR UI
-===================================================== */
-
-function updateSensor(
-    statusId,
-    cardId,
-    active
-) {
-
-    const status =
-        document.getElementById(
-            statusId
-        );
-
-    const card =
-        document.getElementById(
-            cardId
-        );
-
-
-    card.classList.remove(
-        "warning",
-        "critical"
-    );
-
-
-    if (active) {
-
-        status.textContent =
-            "ACTIVE";
+      if (liveAlarm) {
+        liveAlarm.textContent =
+          "OFF";
+      }
 
     }
 
-    else {
 
-        status.textContent =
-            "OFF";
-
+    if (liveAlarmCondition) {
+      liveAlarmCondition.textContent =
+        status;
     }
 
-}
+  }
 
 
-/* =====================================================
-   WATER LEVEL UI
-===================================================== */
+  // ============================================
+  // ALARM SOUND
+  // ============================================
 
-function updateWaterLevel(
-    level,
-    distance,
-    status
-) {
+  function startAlarmSound() {
 
-    setText(
-        "waterLevel",
-        level.toFixed(1) + "%"
-    );
-
-
-    setText(
-        "distance",
-        distance === null
-            ? "-- cm"
-            : distance.toFixed(1) + " cm"
-    );
-
-
-    setText(
-        "waterDetailPercent",
-        level.toFixed(1) + "%"
-    );
-
-
-    setText(
-        "waterDetailDistance",
-        distance === null
-            ? "-- cm"
-            : distance.toFixed(1) + " cm"
-    );
-
-
-    setText(
-        "waterDetailStatus",
-        status
-    );
-
-
-    const bars =
-        document.querySelectorAll(
-            ".water-bar-fill"
-        );
-
-
-    bars.forEach(function(bar) {
-
-        bar.style.width =
-            level + "%";
-
-
-        bar.classList.remove(
-            "warning",
-            "critical"
-        );
-
-
-        if (status === "CRITICAL") {
-
-            bar.classList.add(
-                "critical"
-            );
-
-        }
-
-        else if (status === "WARNING") {
-
-            bar.classList.add(
-                "warning"
-            );
-
-        }
-
-    });
-
-}
-
-
-/* =====================================================
-   STATUS DESCRIPTION
-===================================================== */
-
-function getStatusDescription(status) {
-
-    if (status === "CRITICAL") {
-
-        return "CRITICAL FLOOD CONDITION";
-
+    if (!alarmEnabled || alarmMuted) {
+      return;
     }
 
-    if (status === "WARNING") {
-
-        return "WATER LEVEL RISING";
-
+    if (!audioContext) {
+      return;
     }
 
-    return "SYSTEM NORMAL";
+    if (alarmTimer) {
+      return;
+    }
 
-}
 
+    const playBeep = function () {
 
-/* =====================================================
-   ALARM - ENABLE
-===================================================== */
-
-const enableAlarmBtn =
-    document.getElementById(
-        "enableAlarmBtn"
-    );
-
-
-if (enableAlarmBtn) {
-
-    enableAlarmBtn.addEventListener(
-        "click",
-        async function() {
-
-            try {
-
-                audioContext =
-                    new (
-                        window.AudioContext ||
-                        window.webkitAudioContext
-                    )();
-
-
-                if (
-                    audioContext.state ===
-                    "suspended"
-                ) {
-
-                    await audioContext.resume();
-
-                }
-
-
-                alarmEnabled = true;
-
-                alarmMuted = false;
-
-
-                enableAlarmBtn.textContent =
-                    "🔊 ALARM ENABLED";
-
-                enableAlarmBtn.disabled =
-                    true;
-
-
-                setText(
-                    "systemAlarm",
-                    "ENABLED"
-                );
-
-
-                const muteButton =
-                    document.getElementById(
-                        "muteAlarmBtn"
-                    );
-
-
-                if (muteButton) {
-
-                    muteButton.textContent =
-                        "🔇 MUTE ALARM";
-
-                }
-
-
-                /* Test sound */
-
-                playAlarmSound(
-                    "WARNING"
-                );
-
-
-            }
-
-            catch (error) {
-
-                console.error(
-                    "Alarm error:",
-                    error
-                );
-
-
-                alert(
-                    "Unable to enable alarm sound."
-                );
-
-            }
-
-        }
-    );
-
-}
-
-
-/* =====================================================
-   ALARM - MUTE
-===================================================== */
-
-const muteAlarmBtn =
-    document.getElementById(
-        "muteAlarmBtn"
-    );
-
-
-if (muteAlarmBtn) {
-
-    muteAlarmBtn.addEventListener(
-        "click",
-        function() {
-
-            if (!alarmEnabled) {
-
-                alert(
-                    "Please click ENABLE ALARM first."
-                );
-
-                return;
-
-            }
-
-
-            alarmMuted =
-                !alarmMuted;
-
-
-            if (alarmMuted) {
-
-                muteAlarmBtn.textContent =
-                    "🔊 UNMUTE ALARM";
-
-                stopAlarm();
-
-                setText(
-                    "systemAlarm",
-                    "MUTED"
-                );
-
-            }
-
-            else {
-
-                muteAlarmBtn.textContent =
-                    "🔇 MUTE ALARM";
-
-                setText(
-                    "systemAlarm",
-                    "ENABLED"
-                );
-
-
-                if (latestData) {
-
-                    const status =
-                        calculateFloodStatus(
-                            latestData
-                        );
-
-
-                    if (
-                        status !== "SAFE"
-                    ) {
-
-                        startAlarm(status);
-
-                    }
-
-                }
-
-            }
-
-        }
-    );
-
-}
-
-
-/* =====================================================
-   ALARM SOUND
-===================================================== */
-
-function playAlarmSound(level) {
-
-    if (
-        !alarmEnabled ||
+      if (
+        !audioContext ||
         alarmMuted ||
-        !audioContext
-    ) {
-
+        !alarmEnabled ||
+        lastCalculatedStatus === "SAFE"
+      ) {
         return;
+      }
 
-    }
 
-
-    const oscillator =
+      const oscillator =
         audioContext.createOscillator();
 
-
-    const gain =
+      const gain =
         audioContext.createGain();
 
 
-    oscillator.connect(gain);
+      oscillator.connect(
+        gain
+      );
 
-    gain.connect(
+      gain.connect(
         audioContext.destination
-    );
+      );
 
 
-    oscillator.type =
+      if (
+        lastCalculatedStatus ===
+        "CRITICAL"
+      ) {
+
+        oscillator.frequency.value =
+          1000;
+
+      } else {
+
+        oscillator.frequency.value =
+          600;
+      }
+
+
+      oscillator.type =
         "square";
 
 
-    const now =
-        audioContext.currentTime;
+      gain.gain.setValueAtTime(
+        0.15,
+        audioContext.currentTime
+      );
 
 
-    /* =========================
-       CRITICAL
-    ========================= */
+      oscillator.start();
 
-    if (level === "CRITICAL") {
 
-        oscillator.frequency.setValueAtTime(
-            1000,
-            now
-        );
-
-        oscillator.frequency.setValueAtTime(
-            700,
-            now + 0.20
-        );
-
-        oscillator.frequency.setValueAtTime(
-            1000,
-            now + 0.40
-        );
-
-
-        gain.gain.setValueAtTime(
-            0.30,
-            now
-        );
-
-        gain.gain.exponentialRampToValueAtTime(
-            0.01,
-            now + 0.60
-        );
-
-
-        oscillator.start(now);
-
-        oscillator.stop(
-            now + 0.60
-        );
-
-    }
-
-
-    /* =========================
-       WARNING
-    ========================= */
-
-    else {
-
-        oscillator.frequency.setValueAtTime(
-            750,
-            now
-        );
-
-
-        gain.gain.setValueAtTime(
-            0.20,
-            now
-        );
-
-        gain.gain.exponentialRampToValueAtTime(
-            0.01,
-            now + 0.35
-        );
-
-
-        oscillator.start(now);
-
-        oscillator.stop(
-            now + 0.35
-        );
-
-    }
-
-}
-
-
-/* =====================================================
-   START ALARM
-===================================================== */
-
-function startAlarm(status) {
-
-    stopAlarm();
-
-
-    if (
-        !alarmEnabled ||
-        alarmMuted
-    ) {
-
-        return;
-
-    }
-
-
-    playAlarmSound(status);
-
-
-    const interval =
-        status === "CRITICAL"
-            ? 800
-            : 1500;
-
-
-    alarmTimer =
-        setInterval(
-            function() {
-
-                if (
-                    !alarmEnabled ||
-                    alarmMuted
-                ) {
-
-                    stopAlarm();
-
-                    return;
-
-                }
-
-
-                playAlarmSound(
-                    status
-                );
-
-            },
-            interval
-        );
-
-}
-
-
-/* =====================================================
-   STOP ALARM
-===================================================== */
-
-function stopAlarm() {
-
-    if (
-        alarmTimer !== null
-    ) {
-
-        clearInterval(
-            alarmTimer
-        );
-
-        alarmTimer = null;
-
-    }
-
-}
-
-
-/* =====================================================
-   UPDATE ALARM
-===================================================== */
-
-function updateAlarm(
-    status,
-    data
-) {
-
-    const panel =
-        document.getElementById(
-            "alarmPanel"
-        );
-
-
-    const icon =
-        document.getElementById(
-            "alarmIcon"
-        );
-
-
-    const title =
-        document.getElementById(
-            "alarmTitle"
-        );
-
-
-    const message =
-        document.getElementById(
-            "alarmMessage"
-        );
-
-
-    const liveAlarm =
-        document.getElementById(
-            "liveAlarm"
-        );
-
-
-    const liveAlarmStatus =
-        document.getElementById(
-            "liveAlarmStatus"
-        );
-
-
-    const condition =
-        document.getElementById(
-            "liveAlarmCondition"
-        );
-
-
-    /* =========================
-       CRITICAL
-    ========================= */
-
-    if (status === "CRITICAL") {
-
-        panel.style.display =
-            "block";
-
-
-        panel.classList.add(
-            "critical"
-        );
-
-
-        icon.textContent =
-            "🚨";
-
-
-        title.textContent =
-            "CRITICAL FLOOD ALERT";
-
-
-        message.textContent =
-            "HIGH WATER LEVEL DETECTED!";
-
-
-        liveAlarm.textContent =
-            "🚨 ALARM ACTIVE";
-
-
-        liveAlarmStatus.textContent =
-            "CRITICAL";
-
-
-        condition.textContent =
-            "High sensor or water level ≥ 70%";
-
-
-        startAlarm(
-            "CRITICAL"
-        );
-
-    }
-
-
-    /* =========================
-       WARNING
-    ========================= */
-
-    else if (status === "WARNING") {
-
-        panel.style.display =
-            "block";
-
-
-        panel.classList.remove(
-            "critical"
-        );
-
-
-        icon.textContent =
-            "⚠️";
-
-
-        title.textContent =
-            "FLOOD WARNING";
-
-
-        message.textContent =
-            "WATER LEVEL IS RISING!";
-
-
-        liveAlarm.textContent =
-            "⚠️ WARNING ALARM";
-
-
-        liveAlarmStatus.textContent =
-            "WARNING";
-
-
-        condition.textContent =
-            "Medium sensor or water level ≥ 40%";
-
-
-        startAlarm(
-            "WARNING"
-        );
-
-    }
-
-
-    /* =========================
-       SAFE
-    ========================= */
-
-    else {
-
-        panel.style.display =
-            "none";
-
-
-        panel.classList.remove(
-            "critical"
-        );
-
-
-        liveAlarm.textContent =
-            "✓ ALARM OFF";
-
-
-        liveAlarmStatus.textContent =
-            "SAFE";
-
-
-        condition.textContent =
-            "No alarm condition.";
-
-
-        stopAlarm();
-
-    }
-
-}
-
-
-/* =====================================================
-   CONNECTION STATUS
-===================================================== */
-
-function setConnection(online) {
-
-    const dot =
-        document.getElementById(
-            "connectionDot"
-        );
-
-
-    const text =
-        document.getElementById(
-            "connectionText"
-        );
-
-
-    if (online) {
-
-        dot.classList.add(
-            "online"
-        );
-
-
-        text.textContent =
-            "ESP32 ONLINE";
-
-    }
-
-    else {
-
-        dot.classList.remove(
-            "online"
-        );
-
-
-        text.textContent =
-            "ESP32 OFFLINE";
-
-    }
-
-}
-
-
-/* =====================================================
-   WEBSOCKET CONNECTION
-===================================================== */
-
-function connectWebSocket() {
-
-    if (socket) {
-
-        try {
-
-            socket.close();
-
-        }
-
-        catch (e) {}
-
-    }
-
-
-    let url =
-        settings.wsUrl;
-
-
-    if (!url) {
-
-        url =
-            `ws://${location.host}`;
-
-    }
-
-
-    console.log(
-        "Connecting WebSocket:",
-        url
-    );
-
-
-    try {
-
-        socket =
-            new WebSocket(url);
-
-
-        socket.onopen =
-            function() {
-
-                console.log(
-                    "WebSocket connected"
-                );
-
-
-                setConnection(
-                    true
-                );
-
-            };
-
-
-        socket.onmessage =
-            function(event) {
-
-                try {
-
-                    const raw =
-                        JSON.parse(
-                            event.data
-                        );
-
-
-                    const data =
-                        normalizeData(
-                            raw
-                        );
-
-
-                    if (data) {
-
-                        updateUI(
-                            data
-                        );
-
-                    }
-
-                }
-
-                catch (error) {
-
-                    console.error(
-                        "Invalid server data:",
-                        error
-                    );
-
-                }
-
-            };
-
-
-        socket.onclose =
-            function() {
-
-                console.log(
-                    "WebSocket disconnected"
-                );
-
-
-                setConnection(
-                    false
-                );
-
-
-                setTimeout(
-                    connectWebSocket,
-                    3000
-                );
-
-            };
-
-
-        socket.onerror =
-            function(error) {
-
-                console.error(
-                    "WebSocket error:",
-                    error
-                );
-
-
-                setConnection(
-                    false
-                );
-
-            };
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "WebSocket connection error:",
-            error
-        );
-
-
-        setConnection(
-            false
-        );
-
-    }
-
-}
-
-
-/* =====================================================
-   API TEST
-===================================================== */
-
-async function testAPI() {
-
-    const apiUrl =
-        settings.apiUrl;
-
-
-    try {
-
-        const response =
-            await fetch(
-                apiUrl +
-                "/api/health"
-            );
-
-
-        const data =
-            await response.json();
-
-
-        console.log(
-            "API:",
-            data
-        );
-
-
-        if (data.ok) {
-
-            alert(
-                "API CONNECTION SUCCESSFUL!\n\n" +
-                "Server: ONLINE\n" +
-                "Clients: " +
-                data.clients
-            );
-
-        }
-
-        else {
-
-            alert(
-                "API responded, but status is not OK."
-            );
-
-        }
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "API test failed:",
-            error
-        );
-
-
-        alert(
-            "API CONNECTION FAILED.\n\n" +
-            "Make sure Node.js server is running."
-        );
-
-    }
-
-}
-
-
-/* =====================================================
-   GET LATEST DATA
-===================================================== */
-
-async function getLatestData() {
-
-    try {
-
-        const response =
-            await fetch(
-                settings.apiUrl +
-                "/api/latest"
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "HTTP " +
-                response.status
-            );
-
-        }
-
-
-        const raw =
-            await response.json();
-
-
-        const data =
-            normalizeData(
-                raw
-            );
-
-
-        if (data) {
-
-            updateUI(
-                data
-            );
-
-        }
-
-    }
-
-    catch (error) {
-
-        console.error(
-            "Latest data error:",
-            error
-        );
-
-    }
-
-}
-
-
-/* =====================================================
-   CHARTS
-===================================================== */
-
-function initializeCharts() {
-
-    const waterCanvas =
-        document.getElementById(
-            "waterChart"
-        );
-
-
-    if (waterCanvas) {
-
-        waterChart =
-            new Chart(
-                waterCanvas,
-                {
-
-                    type: "line",
-
-                    data: {
-
-                        labels: [],
-
-                        datasets: [
-
-                            {
-
-                                label:
-                                    "Water Level (%)",
-
-                                data: [],
-
-                                tension: .3,
-
-                                fill: true
-
-                            }
-
-                        ]
-
-                    },
-
-                    options: {
-
-                        responsive: true,
-
-                        maintainAspectRatio: false,
-
-                        scales: {
-
-                            y: {
-
-                                min: 0,
-
-                                max: 100
-
-                            }
-
-                        }
-
-                    }
-
-                }
-            );
-
-    }
-
-
-    const historyCanvas =
-        document.getElementById(
-            "historyChart"
-        );
-
-
-    if (historyCanvas) {
-
-        historyChart =
-            new Chart(
-                historyCanvas,
-                {
-
-                    type: "line",
-
-                    data: {
-
-                        labels: [],
-
-                        datasets: [
-
-                            {
-
-                                label:
-                                    "Water Level (%)",
-
-                                data: [],
-
-                                tension: .3,
-
-                                fill: true
-
-                            }
-
-                        ]
-
-                    },
-
-                    options: {
-
-                        responsive: true,
-
-                        maintainAspectRatio: false,
-
-                        scales: {
-
-                            y: {
-
-                                min: 0,
-
-                                max: 100
-
-                            }
-
-                        }
-
-                    }
-
-                }
-            );
-
-    }
-
-}
-
-
-/* =====================================================
-   UPDATE CHARTS
-===================================================== */
-
-function updateCharts(level) {
-
-    const time =
-        new Date().toLocaleTimeString();
-
-
-    historyData.push({
-
-        time: time,
-
-        level: level
-
-    });
-
-
-    if (
-        historyData.length > 30
-    ) {
-
-        historyData.shift();
-
-    }
-
-
-    const labels =
-        historyData.map(
-            item => item.time
-        );
-
-
-    const values =
-        historyData.map(
-            item => item.level
-        );
-
-
-    if (waterChart) {
-
-        waterChart.data.labels =
-            labels;
-
-        waterChart.data.datasets[0].data =
-            values;
-
-        waterChart.update(
-            "none"
-        );
-
-    }
-
-
-    if (historyChart) {
-
-        historyChart.data.labels =
-            labels;
-
-        historyChart.data.datasets[0].data =
-            values;
-
-        historyChart.update(
-            "none"
-        );
-
-    }
-
-}
-
-
-/* =====================================================
-   ALERT HISTORY
-===================================================== */
-
-function loadAlertHistory() {
-
-    try {
-
-        const saved =
-            localStorage.getItem(
-                "armorAlerts"
-            );
-
-
-        if (saved) {
-
-            alertHistory =
-                JSON.parse(saved);
-
-        }
-
-    }
-
-    catch (error) {
-
-        alertHistory = [];
-
-    }
-
-
-    renderAlertHistory();
-
-}
-
-
-/* =====================================================
-   ADD ALERT
-===================================================== */
-
-function addAlert(
-    data,
-    status
-) {
-
-    const alert = {
-
-        time:
-            new Date().toLocaleString(),
-
-        status:
-            status,
-
-        waterLevel:
-            data.waterLevel,
-
-        distance:
-            data.distance,
-
-        low:
-            data.lowSensor,
-
-        medium:
-            data.mediumSensor,
-
-        high:
-            data.highSensor
+      oscillator.stop(
+        audioContext.currentTime + 0.25
+      );
 
     };
 
 
-    alertHistory.unshift(
-        alert
-    );
+    playBeep();
 
 
-    if (
-        alertHistory.length > 100
-    ) {
+    alarmTimer =
+      setInterval(
+        playBeep,
+        lastCalculatedStatus === "CRITICAL"
+          ? 700
+          : 1500
+      );
 
-        alertHistory =
-            alertHistory.slice(
-                0,
-                100
-            );
+  }
 
+
+  // ============================================
+  // STOP ALARM
+  // ============================================
+
+  function stopAlarmSound() {
+
+    if (alarmTimer) {
+
+      clearInterval(
+        alarmTimer
+      );
+
+      alarmTimer = null;
     }
 
+  }
 
-    localStorage.setItem(
-        "armorAlerts",
-        JSON.stringify(
-            alertHistory
-        )
-    );
 
+  // ============================================
+  // CHECK STATUS EVERY 300ms
+  // ============================================
 
-    renderAlertHistory();
+  setInterval(
+    updateFloodStatus,
+    300
+  );
 
 
-    const banner =
-        document.getElementById(
-            "alertBanner"
-        );
+  // ============================================
+  // INITIAL STATUS
+  // ============================================
 
+  setTimeout(
+    updateFloodStatus,
+    500
+  );
 
-    if (banner) {
-
-        banner.style.display =
-            "block";
-
-    }
-
-
-    setText(
-        "alertTitle",
-        status === "CRITICAL"
-            ? "🚨 CRITICAL FLOOD ALERT"
-            : "⚠️ FLOOD WARNING"
-    );
-
-
-    setText(
-        "alertText",
-        status === "CRITICAL"
-            ? "Critical flood condition detected."
-            : "Water level is rising."
-    );
-
-
-    setText(
-        "alertTime",
-        new Date().toLocaleString()
-    );
-
-}
-
-
-/* =====================================================
-   RENDER ALERT HISTORY
-===================================================== */
-
-function renderAlertHistory() {
-
-    const table =
-        document.getElementById(
-            "alertHistoryTable"
-        );
-
-
-    if (!table) {
-
-        return;
-
-    }
-
-
-    if (
-        alertHistory.length === 0
-    ) {
-
-        table.innerHTML =
-            `
-            <tr>
-                <td colspan="5">
-                    No alerts yet.
-                </td>
-            </tr>
-            `;
-
-        return;
-
-    }
-
-
-    table.innerHTML =
-        alertHistory.map(
-            function(alert) {
-
-                const sensors = [];
-
-                if (alert.low) {
-                    sensors.push("LOW");
-                }
-
-                if (alert.medium) {
-                    sensors.push("MEDIUM");
-                }
-
-                if (alert.high) {
-                    sensors.push("HIGH");
-                }
-
-
-                return `
-
-                    <tr>
-
-                        <td>
-                            ${alert.time}
-                        </td>
-
-                        <td>
-                            ${alert.status}
-                        </td>
-
-                        <td>
-                            ${Number(alert.waterLevel).toFixed(1)}%
-                        </td>
-
-                        <td>
-                            ${
-                                alert.distance === null
-                                    ? "--"
-                                    : Number(alert.distance).toFixed(1) + " cm"
-                            }
-                        </td>
-
-                        <td>
-                            ${
-                                sensors.length
-                                    ? sensors.join(", ")
-                                    : "None"
-                            }
-                        </td>
-
-                    </tr>
-
-                `;
-
-            }
-        ).join("");
-
-}
-
-
-/* =====================================================
-   CLEAR ALERT HISTORY
-===================================================== */
-
-function clearAlertHistory() {
-
-    if (
-        !confirm(
-            "Clear all alert history?"
-        )
-    ) {
-
-        return;
-
-    }
-
-
-    alertHistory = [];
-
-
-    localStorage.removeItem(
-        "armorAlerts"
-    );
-
-
-    renderAlertHistory();
-
-}
-
-
-/* =====================================================
-   EXPORT ALERT HISTORY
-===================================================== */
-
-function exportAlertHistory() {
-
-    if (
-        alertHistory.length === 0
-    ) {
-
-        alert(
-            "There are no alerts to export."
-        );
-
-        return;
-
-    }
-
-
-    let csv =
-        "Time,Status,Water Level,Distance,Low Sensor,Medium Sensor,High Sensor\n";
-
-
-    alertHistory.forEach(
-        function(alert) {
-
-            csv +=
-                `"${alert.time}",` +
-                `"${alert.status}",` +
-                `"${alert.waterLevel}",` +
-                `"${alert.distance}",` +
-                `"${alert.low}",` +
-                `"${alert.medium}",` +
-                `"${alert.high}"\n`;
-
-        }
-    );
-
-
-    const blob =
-        new Blob(
-            [csv],
-            {
-                type:
-                    "text/csv"
-            }
-        );
-
-
-    const url =
-        URL.createObjectURL(
-            blob
-        );
-
-
-    const link =
-        document.createElement(
-            "a"
-        );
-
-
-    link.href =
-        url;
-
-
-    link.download =
-        "armor_flood_alert_history.csv";
-
-
-    link.click();
-
-
-    URL.revokeObjectURL(
-        url
-    );
-
-}
-
-
-/* =====================================================
-   TEXT HELPER
-===================================================== */
-
-function setText(
-    id,
-    text
-) {
-
-    const element =
-        document.getElementById(id);
-
-
-    if (element) {
-
-        element.textContent =
-            text;
-
-    }
-
-}
-
-
-/* =====================================================
-   TIME
-===================================================== */
-
-function formatTime(timestamp) {
-
-    try {
-
-        return new Date(
-            timestamp
-        ).toLocaleString();
-
-    }
-
-    catch (error) {
-
-        return "--";
-
-    }
-
-}
-
-
-/* =====================================================
-   BUTTONS
-===================================================== */
-
-const saveButton =
-    document.getElementById(
-        "saveSettings"
-    );
-
-
-if (saveButton) {
-
-    saveButton.addEventListener(
-        "click",
-        saveSettings
-    );
-
-}
-
-
-const connectButton =
-    document.getElementById(
-        "connectBtn"
-    );
-
-
-if (connectButton) {
-
-    connectButton.addEventListener(
-        "click",
-        function() {
-
-            connectWebSocket();
-
-            getLatestData();
-
-        }
-    );
-
-}
-
-
-const apiButton =
-    document.getElementById(
-        "testApi"
-    );
-
-
-if (apiButton) {
-
-    apiButton.addEventListener(
-        "click",
-        testAPI
-    );
-
-}
-
-
-/* =====================================================
-   START SYSTEM
-===================================================== */
-
-loadSettings();
-
-loadAlertHistory();
-
-initializeCharts();
-
-connectWebSocket();
-
-getLatestData();
-
-
-/* Periodically check latest data */
-
-setInterval(
-    getLatestData,
-    settings.updateInterval
-);
+})();
 
 </script>
+
+
+<!-- ORIGINAL SCRIPT -->
+<script src="script.js"></script>
 
 </body>
 </html>
